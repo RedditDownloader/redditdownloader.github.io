@@ -1,0 +1,33 @@
+html, body {
+    height: 100%;
+    margin: 0;
+}
+
+.container {
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.incorrect-input {
+    border: 1px solid #C62828 !important;
+}
+
+#cancelButton {
+    display: none;
+}
+
+@media screen and (max-height: 500px) {
+    .container {
+        top: 40px;
+        margin-bottom: 40px;
+        transform: none;
+    }
+}
+
+@media screen and (max-width: 550px) {
+    .container {
+        top: 40px;
+        margin-bottom: 40px;
+        transform: none;
+    }
+}
