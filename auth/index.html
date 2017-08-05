@@ -6,17 +6,10 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/js-cookie/2.1.4/js.cookie.min.js" integrity="sha256-NjbogQqosWgor0UBdCURR5dzcvAgHnfUZMcZ8RCwkk8=" crossorigin="anonymous"></script>
 
 <script type="text/javascript">
-    /**
-     * Credit: https://gomakethings.com/how-to-get-the-value-of-a-querystring-with-native-javascript/
-     * 
-     * Get the value of a querystring
-     * @param  {String} field The field to get the value of
-     * @param  {String} url   The URL to get the value from (optional)
-     * @return {String}       The field value
-     */
-    var getQueryString = function ( field, url ) {
+    // Credit: https://gomakethings.com/how-to-get-the-value-of-a-querystring-with-native-javascript/
+    var getQueryString = function (field, url) {
         var href = url ? url : window.location.href;
-        var reg = new RegExp( '[#&]' + field + '=([^&#]*)', 'i' );
+        var reg = new RegExp('[#&]' + field + '=([^&#]*)', 'i');
         var string = reg.exec(href);
         return string ? string[1] : null;
     };
