@@ -16,6 +16,8 @@
     var CLIENT_ID = "-EFn6NcK09KFyw";
     var REDIRECT_URI = "https://redditdownloader.github.io/auth";
 
+    var CORS_PROXY_URL = "https://cors-anywhere.herokuapp.com/";
+
     var downloadInterval;
     var downloadedCount = 0;
     var DOWNLOAD_COUNT = 5; // temp var
@@ -75,8 +77,6 @@
                     }
                 },
                 error: function(error) {
-                    console.log(error);
-
                     if (error.status === 401) {
                         Cookies.remove("access_token");
                         location.reload(true);
@@ -87,22 +87,17 @@
     });
 
     function downloadImageAsBase64(url, callback) {
-        var image = new Image();
-
-        image.src = url;
-        image.crossOrigin = "anonymous";
-
-        image.onload = function () {
-            var canvas = document.createElement("canvas");
-
-            canvas.width = this.width;
-            canvas.height = this.height;
-
-            var context = canvas.getContext("2d");
-            context.drawImage(this, 0, 0);
-
-            callback(url, canvas.toDataURL().replace(/^data:.+\/(.+);base64,/, ""));
+        var xhr = new XMLHttpRequest();
+        xhr.onload = function() {
+            var reader = new FileReader();
+            reader.onloadend = function() {
+                callback(url, reader.result.replace(/^data:.+\/(.+);base64,/, ""));
+            }
+            reader.readAsDataURL(xhr.response);
         };
+        xhr.open('GET', CORS_PROXY_URL + url);
+        xhr.responseType = 'blob';
+        xhr.send();
     }
 </script>
 </body>
