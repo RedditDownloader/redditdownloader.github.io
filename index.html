@@ -30,7 +30,7 @@
                 },
                 contentType: "application/json; charset=utf-8",
                 success: function (result) {
-                    var children = result.children;
+                    var children = result.data.children;
 
                     for (var i = 0; i < children.length; i++) {
                         var post = children[i].data;
