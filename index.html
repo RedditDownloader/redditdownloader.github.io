@@ -61,7 +61,7 @@
 
                                     downloadImageAsBase64(url, function(url, data) {
                                         console.log("downloaded " + url);
-                                        zip.file(url.replace(/(.+\/)/, ""), data, { base64: true });
+                                        zip.file(url.replace(/(.+\/)/, "").replace(/(\?.+)/, ""), data, { base64: true });
                                         downloadedCount++;
                                     });
                                 }
