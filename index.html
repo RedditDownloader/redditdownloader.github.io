@@ -44,6 +44,10 @@
                             var post = children[i].data;
 
                             if (post.url.endsWith(".jpg")) {
+                                if (post.url.startsWith("http:")) {
+                                    post.url = post.url.replace("http:", "https:");
+                                }
+
                                 downloadImageAsBase64(post.url, function(url, data) {
                                     console.log("downloaded " + url);
                                     zip.file(url.replace(/(.+\/)/, ""), data, { base64: true });
