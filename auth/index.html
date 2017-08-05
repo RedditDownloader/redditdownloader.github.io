@@ -24,7 +24,7 @@
     $(document).ready(function() {
         if (getQueryString("state") === "scuffed") {
             Cookies.set('access_token', getQueryString("access_token"), { expires: 1 });
-            window.location = document.domain;
+            window.location = "/";
         }
     });
 </script>
