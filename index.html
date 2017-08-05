@@ -20,6 +20,22 @@
             window.location = "https://www.reddit.com/api/v1/authorize?client_id=" + CLIENT_ID + "&response_type=token&state=scuffed&redirect_uri=" + REDIRECT_URI + "&scope=read";
         } else {
             alert("Your access token is: " + access_token);
+
+            $.ajax({
+                url: "https://oauth.reddit.com/r/aww/hot",
+                type: "GET",
+                dataType: "json",
+                headers: {
+                    "Authorization": "bearer " + access_token
+                },
+                contentType: "application/json; charset=utf-8",
+                success: function (result) {
+                    alert("result: " + result);
+                },
+                error: function (error) {
+                    alert("error: " + error);
+                }
+            });
         }
     });
 </script>
