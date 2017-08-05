@@ -94,8 +94,8 @@ function doneDownloading() {
             });
     }
 
-    $("#downloadButton").show();
     $("#cancelButton").hide();
+    $("#downloadButton").show();
 }
 
 function downloadImageAsBase64(url, callback) {
