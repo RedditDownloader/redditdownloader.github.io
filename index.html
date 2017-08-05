@@ -43,16 +43,20 @@
                         for (var i = 0; i < 3; i++) {
                             var post = children[i].data;
 
-                            if (post.url.endsWith(".jpg")) {
-                                if (post.url.startsWith("http:")) {
-                                    post.url = post.url.replace("http:", "https:");
-                                }
+                            if (post.preview !== undefined && post.preview.images.length > 0) {
+                                var url = post.preview.images[0].source.url;
 
-                                downloadImageAsBase64(post.url, function(url, data) {
-                                    console.log("downloaded " + url);
-                                    zip.file(url.replace(/(.+\/)/, ""), data, { base64: true });
-                                    downloadedCount++;
-                                });
+                                if (url.endsWith(".jpg")) {
+                                    if (url.startsWith("http:")) {
+                                        url = url.replace("http:", "https:");
+                                    }
+
+                                    downloadImageAsBase64(url, function(url, data) {
+                                        console.log("downloaded " + url);
+                                        zip.file(url.replace(/(.+\/)/, ""), data, { base64: true });
+                                        downloadedCount++;
+                                    });
+                                }
                             }
                         }
 
