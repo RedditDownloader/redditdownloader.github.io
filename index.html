@@ -18,6 +18,7 @@
 
     var downloadInterval;
     var downloadedCount = 0;
+    var DOWNLOAD_COUNT = 5; // temp var
 
     var zip = new JSZip();
 
@@ -40,7 +41,7 @@
                     var children = result.data.children;
 
                     if (children.length > 0) {
-                        for (var i = 0; i < 3; i++) {
+                        for (var i = 0; i < DOWNLOAD_COUNT; i++) {
                             var post = children[i].data;
 
                             if (post.preview !== undefined && post.preview.images.length > 0) {
@@ -61,7 +62,7 @@
                         }
 
                         downloadInterval = setInterval(function() {
-                            if (downloadedCount == children.length) {
+                            if (downloadedCount == DOWNLOAD_COUNT) {
                                 console.log("downloaded all images");
                                 clearInterval(downloadInterval);
 
