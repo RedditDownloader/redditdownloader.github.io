@@ -65,8 +65,12 @@ function startDownloading() {
             }
         },
         error: function(error) {
-            if (error.status != 200) {
+            if (error.status === 404 || error.status === 403) {
+                /* If HTTP status is 404 or 403, the subreddit probably doesn't exist */
                 $("#subNameInput").addClass("incorrect-input");
+            } else if (error.status != 200) {
+                /* Notify user when a non-handled status code is received */
+                alert("Unknown status code " + error.status + " received from lookup request.\nPlease contact the developer.");
             }
             doneDownloading();
         }
