@@ -7,7 +7,6 @@ var includeNsfw;
 var includeGifs;
 
 var checkFinishedInterval;
-var downloading;
 var downloadRequests = new Set();
 var downloadedCount;
 var toDownloadCount;
@@ -16,20 +15,27 @@ var zip = new JSZip();
 
 $(document).ready(function() {
     $('.ui.checkbox').checkbox();
+
+    $('.ui.form').form({
+        fields: {
+            subNameInput : 'empty',
+            maxImageCountInput : 'integer[0..]'
+        }
+    });
 });
 
 $("#downloadButton").click(function() {
-    if (downloading) {
-        for (var xhr in downloadRequests) {
-            xhr.abort();
-        }
-        doneDownloading();
-    } else if (inputIsValid()) {
+    if ($('.ui.form').form('validate form')) {
         /* Reset states */
-        downloading = true;
+        $('.ui.form').addClass("loading");
+        $("#unknownSubredditErrorBox").hide();
+        $("#downloadingInfoBox").show();
         downloadRequests.clear();
         downloadedCount = 0;
         toDownloadCount = 0;
+        updateUI();
+
+        /* Read user options */
         subName = $("#subNameInput").val();
         includeNsfw = $("#includeNsfwInput").is(':checked');
         includeGifs = $("#includeGifsInput").is(':checked');
@@ -42,13 +48,9 @@ $("#downloadButton").click(function() {
     }
 });
 
-function inputIsValid() {
-    if ($("#maxImageCountInput").val() < 1) {
-        addIncorrectInput($("#maxImageCountInput"));
-        return false;
-    }
-
-    return true;
+function updateUI() {
+    $("#downloadedCountText").text(downloadedCount);
+    $("#toDownloadCountText").text(toDownloadCount);
 }
 
 function download(maxImageCount, anchor) {
@@ -63,51 +65,61 @@ function download(maxImageCount, anchor) {
         type: "GET",
         dataType: "json",
         contentType: "application/json; charset=utf-8",
-        success: function(result) {
-            var children = result.data.children;
+        success: function(result, status, xhr) {
+            /* Check if we have been redirect to the search page = subreddit doesn't exist */
+            if (xhr.getResponseHeader("X-Final-Url").indexOf("hot.json") !== -1) {
+                var children = result.data.children;
 
-            if (children.length > 0) {
-                for (var i = 0; i < children.length; i++) {
-                    var post = children[i].data;
+                if (children.length > 0) {
+                    for (var i = 0; i < children.length; i++) {
+                        var post = children[i].data;
 
-                    if (includeNsfw || !post.over_18) {
-                        if (post.preview !== undefined && post.preview.images.length > 0) {
-                            var url = post.preview.images[0].source.url;
+                        if (includeNsfw || !post.over_18) {
+                            if (post.preview !== undefined && post.preview.images.length > 0) {
+                                var url = post.preview.images[0].source.url;
 
-                            if (isUrlFileFormatAccepted(url)) {
-                                /* Force https */
-                                if (url.startsWith("http:")) {
-                                    url = url.replace("http:", "https:");
+                                if (isUrlFileFormatAccepted(url)) {
+                                    /* Force https */
+                                    if (url.startsWith("http:")) {
+                                        url = url.replace("http:", "https:");
+                                    }
+
+                                    toDownloadCount++;
+                                    updateUI();
+
+                                    downloadImageAsBase64(url, function(url, data) {
+                                        zip.file(url.replace(/(.+\/)/, "").replace(/(\?.+)/, ""), data, { base64: true });
+                                        downloadedCount++;
+                                        updateUI();
+                                    });
                                 }
-
-                                toDownloadCount++;
-
-                                downloadImageAsBase64(url, function(url, data) {
-                                    zip.file(url.replace(/(.+\/)/, "").replace(/(\?.+)/, ""), data, { base64: true });
-                                    downloadedCount++;
-                                });
                             }
                         }
                     }
                 }
-            }
 
-            maxImageCount -= maxImageCountNow;
+                maxImageCount -= maxImageCountNow;
 
-            if (children.length === 0 || maxImageCount === 0) {
-                checkFinishedInterval = setInterval(function() {
-                    if (downloadedCount == toDownloadCount) {
-                        doneDownloading();
-                    }
-                }, CHECK_DOWNLOADS_FINISHED_EVERY_MS);
+                if (children.length === 0 || maxImageCount === 0) {
+                    checkFinishedInterval = setInterval(function() {
+                        if (downloadedCount == toDownloadCount) {
+                            doneDownloading();
+                        }
+                    }, CHECK_DOWNLOADS_FINISHED_EVERY_MS);
+                } else {
+                    download(maxImageCount, result.data.after);
+                }
             } else {
-                download(maxImageCount, result.data.after);
+                $("#unknownSubredditErrorBox").show();
+                $("#subNameText").text(subName);
+                doneDownloading();
             }
         },
         error: function(error) {
             if (error.status === 404 || error.status === 403) {
                 /* If HTTP status is 404 or 403, the subreddit probably doesn't exist */
-                addIncorrectInput($("#subNameInput"));
+                $("#unknownSubredditErrorBox").show();
+                $("#subNameText").text(subName);
             } else if (error.status !== 200) {
                 /* Notify user when a non-handled status code is received */
                 alert("Unknown status code " + error.status + " received from lookup request.\nPlease contact the developer.");
@@ -124,6 +136,10 @@ function isUrlFileFormatAccepted(url) {
 }
 
 function doneDownloading() {
+    for (var xhr in downloadRequests) {
+        xhr.abort();
+    }
+
     clearInterval(checkFinishedInterval);
 
     if (downloadedCount > 0) {
@@ -134,7 +150,8 @@ function doneDownloading() {
     }
 
     $("#downloadButton").removeClass("loading");
-    downloading = false;
+    $('.ui.form').removeClass("loading");
+    $("#downloadingInfoBox").hide();
 }
 
 function downloadImageAsBase64(url, callback) {
@@ -153,15 +170,4 @@ function downloadImageAsBase64(url, callback) {
     xhr.send();
 
     downloadRequests.add(xhr);
-}
-
-function addIncorrectInput(item) {
-    $(item).addClass("incorrect-input");
-    $(item).focus();
-
-    var removeIncorrectInput = function() {
-        $(item).removeClass("incorrect-input");
-    };
-    $(item).keypress(removeIncorrectInput);
-    $(item).mousedown(removeIncorrectInput);
 }

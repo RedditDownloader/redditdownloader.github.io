@@ -45,7 +45,17 @@
                 </div>
             </div>
 
-            <button class="fluid ui button" id="downloadButton">Download - press again to cancel</button>
+            <button class="fluid ui button" id="downloadButton">Download</button>
+        </div>
+
+        <div class="ui negative message" id="unknownSubredditErrorBox">
+            <div class="header">Whoops!</div>
+            <p>It appears that there's no subreddit called <b id="subNameText"></b>.</p>
+        </div>
+
+        <div class="ui message" id="downloadingInfoBox">
+            <div class="header">Downloading images</div>
+            <p>You've downloaded <b id="downloadedCountText">0</b> of <b id="toDownloadCountText">0</b> images so far.</p>
         </div>
     </div>
 
