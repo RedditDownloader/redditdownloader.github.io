@@ -10,21 +10,32 @@ var subName;
 var zip = new JSZip();
 
 $("#downloadButton").click(function() {
-    /* Reset states */
-    downloadRequests.clear();
-    downloadedCount = 0;
-    toDownloadCount = 0;
-    subName = $("#subNameInput").val();
-    updateCancelButton();
+    if (inputIsValid()) {
+        /* Reset states */
+        downloadRequests.clear();
+        downloadedCount = 0;
+        toDownloadCount = 0;
+        subName = $("#subNameInput").val();
+        updateCancelButton();
 
-    /* Hide the download button */
-    $("#downloadButton").hide();
-    $("#cancelButton").show();
+        /* Hide the download button */
+        $("#downloadButton").hide();
+        $("#cancelButton").show();
 
-    /* Find images to scrape and start downloading */
-    var maxImageCount = $("#maxImageCountInput").val();
-    download(maxImageCount);
+        /* Find images to scrape and start downloading */
+        var maxImageCount = $("#maxImageCountInput").val();
+        download(maxImageCount);
+    }
 });
+
+function inputIsValid() {
+    if ($("#maxImageCountInput").val() < 1) {
+        addIncorrectInput($("#maxImageCountInput"));
+        return false;
+    }
+
+    return true;
+}
 
 function download(maxImageCount, anchor) {
     /* Max 100 posts per request */
@@ -80,8 +91,7 @@ function download(maxImageCount, anchor) {
         error: function(error) {
             if (error.status === 404 || error.status === 403) {
                 /* If HTTP status is 404 or 403, the subreddit probably doesn't exist */
-                $("#subNameInput").addClass("incorrect-input");
-                $("#subNameInput").focus();
+                addIncorrectInput($("#subNameInput"));
             } else if (error.status !== 200) {
                 /* Notify user when a non-handled status code is received */
                 alert("Unknown status code " + error.status + " received from lookup request.\nPlease contact the developer.");
@@ -134,8 +144,13 @@ $("#cancelButton").click(function() {
     doneDownloading();
 });
 
-var removeIncorrectInput = function() {
-    $("#subNameInput").removeClass("incorrect-input");
-};
-$("#subNameInput").keypress(removeIncorrectInput);
-$("#subNameInput").mousedown(removeIncorrectInput);
+function addIncorrectInput(item) {
+    $(item).addClass("incorrect-input");
+    $(item).focus();
+
+    var removeIncorrectInput = function() {
+        $(item).removeClass("incorrect-input");
+    };
+    $(item).keypress(removeIncorrectInput);
+    $(item).mousedown(removeIncorrectInput);
+}
