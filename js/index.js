@@ -1,26 +1,40 @@
 var CORS_PROXY_URL = "https://cors-anywhere.herokuapp.com/";
 var CHECK_DOWNLOADS_FINISHED_EVERY_MS = 100;
 
+/* User options */
+var subName;
+var includeNsfw;
+var includeGifs;
+
 var checkFinishedInterval;
+var downloading;
 var downloadRequests = new Set();
 var downloadedCount;
 var toDownloadCount;
-var subName;
 
 var zip = new JSZip();
 
+$(document).ready(function() {
+    $('.ui.checkbox').checkbox();
+});
+
 $("#downloadButton").click(function() {
-    if (inputIsValid()) {
+    if (downloading) {
+        for (var xhr in downloadRequests) {
+            xhr.abort();
+        }
+        doneDownloading();
+    } else if (inputIsValid()) {
         /* Reset states */
+        downloading = true;
         downloadRequests.clear();
         downloadedCount = 0;
         toDownloadCount = 0;
         subName = $("#subNameInput").val();
-        updateCancelButton();
+        includeNsfw = $("#includeNsfwInput").is(':checked');
+        includeGifs = $("#includeGifsInput").is(':checked');
 
-        /* Hide the download button */
-        $("#downloadButton").hide();
-        $("#cancelButton").show();
+        $("#downloadButton").addClass("loading");
 
         /* Find images to scrape and start downloading */
         var maxImageCount = $("#maxImageCountInput").val();
@@ -56,21 +70,23 @@ function download(maxImageCount, anchor) {
                 for (var i = 0; i < children.length; i++) {
                     var post = children[i].data;
 
-                    if (post.preview !== undefined && post.preview.images.length > 0) {
-                        var url = post.preview.images[0].source.url;
+                    if (includeNsfw || !post.over_18) {
+                        if (post.preview !== undefined && post.preview.images.length > 0) {
+                            var url = post.preview.images[0].source.url;
 
-                        if (url.indexOf(".jpg?") !== -1) {
-                            if (url.startsWith("http:")) {
-                                url = url.replace("http:", "https:");
+                            if (isUrlFileFormatAccepted(url)) {
+                                /* Force https */
+                                if (url.startsWith("http:")) {
+                                    url = url.replace("http:", "https:");
+                                }
+
+                                toDownloadCount++;
+
+                                downloadImageAsBase64(url, function(url, data) {
+                                    zip.file(url.replace(/(.+\/)/, "").replace(/(\?.+)/, ""), data, { base64: true });
+                                    downloadedCount++;
+                                });
                             }
-
-                            toDownloadCount++;
-
-                            downloadImageAsBase64(url, function(url, data) {
-                                zip.file(url.replace(/(.+\/)/, "").replace(/(\?.+)/, ""), data, { base64: true });
-                                downloadedCount++;
-                                updateCancelButton();
-                            });
                         }
                     }
                 }
@@ -101,8 +117,10 @@ function download(maxImageCount, anchor) {
     });
 }
 
-function updateCancelButton() {
-    $("#cancelButton").val("downloaded " + downloadedCount + " image" + (downloadedCount == 1 ? "" : "s") + ".. press to cancel");
+function isUrlFileFormatAccepted(url) {
+    return url.indexOf(".jpg?") !== -1 
+        || url.indexOf(".png?") !== -1
+        || (includeGifs && (url.indexOf(".gif?") !== -1 || url.indexOf(".gifv?") !== -1));
 }
 
 function doneDownloading() {
@@ -115,8 +133,8 @@ function doneDownloading() {
             });
     }
 
-    $("#cancelButton").hide();
-    $("#downloadButton").show();
+    $("#downloadButton").removeClass("loading");
+    downloading = false;
 }
 
 function downloadImageAsBase64(url, callback) {
@@ -136,13 +154,6 @@ function downloadImageAsBase64(url, callback) {
 
     downloadRequests.add(xhr);
 }
-
-$("#cancelButton").click(function() {
-    for (var xhr in downloadRequests) {
-        xhr.abort();
-    }
-    doneDownloading();
-});
 
 function addIncorrectInput(item) {
     $(item).addClass("incorrect-input");

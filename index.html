@@ -3,39 +3,55 @@
 <head>
     <title></title>
 
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/skeleton/2.0.4/skeleton.min.css" integrity="sha256-2YQRJMXD7pIAPHiXr0s+vlRWA7GYJEK0ARns7k2sbHY=" crossorigin="anonymous" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.2.11/semantic.min.css" integrity="sha256-g4+HzlttFiqgeuCnx3m308o0ahuBZ+0CRxaRWfSL0BU=" crossorigin="anonymous" />
 
     <link rel="stylesheet" href="css/index.css">
 </head>
 <body>
     <div class="container">
-        <div class="row">
-            <div class="one-half column">
-                <h2>/r/ Image Downloader</h2>
-                <p>This webpage downloads images from <a href="https://www.reddit.com/reddits">subreddits</a>, zips them up and hands them to you, all through your browser.</p>
-                <p>The lookup and downloading code is on the client-side, which means that this website does <b>not</b> know anything about what you're downloading.</p>
-            </div>
-            <div class="one-half column">
-                <h2>&nbsp;</h2>
+        <h2>Reddit Downloader</h2>
+        <p>This webpage downloads images from <a href="https://www.reddit.com/reddits">subreddits</a>, zips them up and hands them to you, all through your browser.</p>
+        <p>The lookup and downloading code is on the client-side, which means that this website does <b>not</b> know anything about what you're downloading.</p>
 
-                <div class="row">
-                    <div class="one-half column">
-                        <label for="subNameInput">Subreddit</label>
-                        <input class="u-full-width" id="subNameInput" type="text" placeholder="AdviceAnimals">
-                    </div>
-                    <div class="one-half column">
-                        <label for="maxImageCountInput">Max Image Count</label>
-                        <input class="u-full-width" id="maxImageCountInput" type="number" step="5" min="5" value="20">
+        <div class="ui form">
+            <h4 class="ui dividing header">Subreddit Image &amp; Video Downloader</h4>
+
+            <div class="two fields">
+                <div class="required field">
+                    <label for="subNameInput">Subreddit</label>
+                    <input id="subNameInput" type="text" placeholder="AdviceAnimals">
+                </div>
+                <div class="required field">
+                    <label for="maxImageCountInput">Max Image Count</label>
+                    <input id="maxImageCountInput" type="number" step="5" min="5" value="20">
+                </div>
+            </div>
+
+            <div class="ui segment">
+                <div class="field">
+                    <div class="ui toggle checkbox">
+                        <input class="hidden" id="includeNsfwInput" type="checkbox" checked>
+                        <label>Include material marked as NSFW (Not Safe For Work)</label>
                     </div>
                 </div>
-
-                <input class="u-full-width" id="cancelButton" type="button">
-                <input class="button-primary u-full-width" id="downloadButton" value="Download" type="submit">
             </div>
+
+            <div class="ui segment">
+                <div class="field">
+                    <div class="ui toggle checkbox">
+                        <input class="hidden" id="includeGifsInput" type="checkbox">
+                        <label>Include animated images (gif/gifv)</label>
+                    </div>
+                </div>
+            </div>
+
+            <button class="fluid ui button" id="downloadButton">Download - press again to cancel</button>
         </div>
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.2.11/semantic.min.js" integrity="sha256-Wl7niWgEJX3PdPn8lBzIDCWO1FBCYExjQihbT4ldMok=" crossorigin="anonymous"></script>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js" integrity="sha256-RbP/rbx4XeYJH6eYUniR63Jk5NEV48Gjestg49cNSWY=" crossorigin="anonymous"></script>
 
