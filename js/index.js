@@ -113,16 +113,15 @@ function downloadImageAsBase64(url, callback) {
     downloadRequests.add(xhr);
 }
 
-$("#subNameInput").keypress(function() {
-    $("#subNameInput").removeClass("incorrect-input");
-});
-$("#subNameInput").mousedown(function() {
-    $("#subNameInput").removeClass("incorrect-input");
-});
-
 $("#cancelButton").click(function() {
     for (var xhr in downloadRequests) {
         xhr.abort();
     }
     doneDownloading();
 });
+
+var removeIncorrectInput = function() {
+    $("#subNameInput").removeClass("incorrect-input");
+};
+$("#subNameInput").keypress(removeIncorrectInput);
+$("#subNameInput").mousedown(removeIncorrectInput);
