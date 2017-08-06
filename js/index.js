@@ -105,7 +105,7 @@ function downloadImageAsBase64(url, callback) {
 
         var reader = new FileReader();
         reader.onloadend = function() {
-            callback(url, reader.result.replace(/^data:.+\/(.+);base64,/, ""));
+            callback(url, reader.result.split(',').pop());
         }
         reader.readAsDataURL(xhr.response);
     };
