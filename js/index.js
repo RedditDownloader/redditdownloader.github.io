@@ -1,5 +1,5 @@
 var CORS_PROXY_URL = "https://cors-anywhere.herokuapp.com/";
-var CHECK_DOWNLOADS_FINISHED_EVERY_MS = 250;
+var CHECK_DOWNLOADS_FINISHED_EVERY_MS = 100;
 
 var checkFinishedInterval;
 var downloadRequests = new Set();
@@ -67,7 +67,7 @@ function download(maxImageCount, anchor) {
 
             maxImageCount -= maxImageCountNow;
 
-            if (children.length == 0 || maxImageCount == 0) {
+            if (children.length === 0 || maxImageCount === 0) {
                 checkFinishedInterval = setInterval(function() {
                     if (downloadedCount == toDownloadCount) {
                         doneDownloading();
@@ -82,7 +82,7 @@ function download(maxImageCount, anchor) {
                 /* If HTTP status is 404 or 403, the subreddit probably doesn't exist */
                 $("#subNameInput").addClass("incorrect-input");
                 $("#subNameInput").focus();
-            } else if (error.status != 200) {
+            } else if (error.status !== 200) {
                 /* Notify user when a non-handled status code is received */
                 alert("Unknown status code " + error.status + " received from lookup request.\nPlease contact the developer.");
             }
