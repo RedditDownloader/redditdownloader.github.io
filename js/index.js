@@ -1,7 +1,8 @@
 var CORS_PROXY_URL = "https://cors-anywhere.herokuapp.com/";
+var CHECK_DOWNLOADS_FINISHED_EVERY_MS = 250;
 
-var downloadInterval;
-var downloadRequests;
+var checkFinishedInterval;
+var downloadRequests = new Set();
 var downloadedCount;
 var toDownloadCount;
 var subName;
@@ -9,16 +10,22 @@ var subName;
 var zip = new JSZip();
 
 $("#downloadButton").click(function() {
-    downloadRequests = new Set();
+    /* Reset states */
+    downloadRequests.clear();
     downloadedCount = 0;
     toDownloadCount = 0;
     subName = $("#subNameInput").val();
-
     updateCancelButton();
 
-    $(this).hide();
+    /* Hide the download button */
+    $("#downloadButton").hide();
     $("#cancelButton").show();
 
+    /* Find images to scrape and start downloading */
+    startDownloading();
+});
+
+function startDownloading() {
     $.ajax({
         url: CORS_PROXY_URL + "https://www.reddit.com/r/" + subName + "/hot.json",
         type: "GET",
@@ -50,11 +57,11 @@ $("#downloadButton").click(function() {
                     }
                 }
 
-                downloadInterval = setInterval(function() {
+                checkFinishedInterval = setInterval(function() {
                     if (downloadedCount == toDownloadCount) {
                         doneDownloading();
                     }
-                }, 250);
+                }, CHECK_DOWNLOADS_FINISHED_EVERY_MS);
             }
         },
         error: function(error) {
@@ -64,28 +71,14 @@ $("#downloadButton").click(function() {
             doneDownloading();
         }
     });
-});
-
-$("#subNameInput").keypress(function() {
-    $("#subNameInput").removeClass("incorrect-input");
-});
-$("#subNameInput").mousedown(function() {
-    $("#subNameInput").removeClass("incorrect-input");
-});
-
-$("#cancelButton").click(function() {
-    for (var xhr in downloadRequests) {
-        xhr.abort();
-    }
-    doneDownloading();
-});
+}
 
 function updateCancelButton() {
     $("#cancelButton").val("downloaded " + downloadedCount + " image" + (downloadedCount == 1 ? "" : "s") + ".. press to cancel");
 }
 
 function doneDownloading() {
-    clearInterval(downloadInterval);
+    clearInterval(checkFinishedInterval);
 
     if (downloadedCount > 0) {
         zip.generateAsync({ type:"blob" })
@@ -115,3 +108,17 @@ function downloadImageAsBase64(url, callback) {
 
     downloadRequests.add(xhr);
 }
+
+$("#subNameInput").keypress(function() {
+    $("#subNameInput").removeClass("incorrect-input");
+});
+$("#subNameInput").mousedown(function() {
+    $("#subNameInput").removeClass("incorrect-input");
+});
+
+$("#cancelButton").click(function() {
+    for (var xhr in downloadRequests) {
+        xhr.abort();
+    }
+    doneDownloading();
+});
