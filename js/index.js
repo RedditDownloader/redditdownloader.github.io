@@ -22,12 +22,19 @@ $("#downloadButton").click(function() {
     $("#cancelButton").show();
 
     /* Find images to scrape and start downloading */
-    startDownloading();
+    var maxImageCount = $("#maxImageCountInput").val();
+    download(maxImageCount);
 });
 
-function startDownloading() {
+function download(maxImageCount, anchor) {
+    /* Max 100 posts per request */
+    var maxImageCountNow = Math.min(maxImageCount, 100);
+
     $.ajax({
-        url: CORS_PROXY_URL + "https://www.reddit.com/r/" + subName + "/hot.json",
+        url: CORS_PROXY_URL 
+            + "https://www.reddit.com/r/" + subName 
+            + "/hot.json?limit=" + maxImageCountNow 
+            + (anchor !== undefined ? "&after=" + anchor : ""),
         type: "GET",
         dataType: "json",
         contentType: "application/json; charset=utf-8",
@@ -35,7 +42,7 @@ function startDownloading() {
             var children = result.data.children;
 
             if (children.length > 0) {
-                for (var i = 0; i < Math.min(children.length, $("#maxImageCountInput").val()); i++) {
+                for (var i = 0; i < children.length; i++) {
                     var post = children[i].data;
 
                     if (post.preview !== undefined && post.preview.images.length > 0) {
@@ -56,12 +63,18 @@ function startDownloading() {
                         }
                     }
                 }
+            }
 
+            maxImageCount -= maxImageCountNow;
+
+            if (children.length == 0 || maxImageCount == 0) {
                 checkFinishedInterval = setInterval(function() {
                     if (downloadedCount == toDownloadCount) {
                         doneDownloading();
                     }
                 }, CHECK_DOWNLOADS_FINISHED_EVERY_MS);
+            } else {
+                download(maxImageCount, result.data.after);
             }
         },
         error: function(error) {
