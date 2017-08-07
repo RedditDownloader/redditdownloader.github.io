@@ -24,10 +24,19 @@ $(document).ready(function() {
 
     $(".ui.checkbox").checkbox();
     $("select.dropdown").dropdown();
+
+    /* Make sure one or both of include images and include animated images are checked */
+    $.fn.form.settings.rules.includeAny = function(value) {
+        return $("#includeImagesInput").parent().checkbox("is checked")
+            || $("#includeGifsInput").parent().checkbox("is checked");
+    };
+
     $(".ui.form").form({
         fields: {
             targetNameInput : "empty",
-            imageAmountInput : "integer[0..]"
+            imageAmountInput : "integer[0..]",
+            includeImagesInput : "includeAny",
+            includeGifsInput : "includeAny"
         }
     });
 
@@ -71,16 +80,16 @@ $("#downloadButton").click(function() {
         updateUI();
 
         /* Read user options */
-        userDownload = $("#userDownloadInput").checkbox("is checked");
+        userDownload = $("#userDownloadInput").parent().checkbox("is checked");
         targetName = $("#targetNameInput").val();
         section = $("#sectionInput").val();
         nameFormat = $("#nameFormatInput").val();
-        restrictByScore = $("#restrictByScoreInput").checkbox("is checked");
+        restrictByScore = $("#restrictByScoreInput").parent().checkbox("is checked");
         restrictByScoreType = $("#restrictByScoreTypeInput").val();
         restrictByScoreValue = $("#restrictByScoreValueInput").val();
-        includeImages = $("#includeImagesInput").checkbox("is checked");
-        includeGifs = $("#includeGifsInput").checkbox("is checked");
-        includeNsfw = $("#includeNsfwInput").checkbox("is checked");
+        includeImages = $("#includeImagesInput").parent().checkbox("is checked");
+        includeGifs = $("#includeGifsInput").parent().checkbox("is checked");
+        includeNsfw = $("#includeNsfwInput").parent().checkbox("is checked");
 
         if (userDownload) {
             /* Handle the user entering /user/ or user/ before the user name */
@@ -104,11 +113,6 @@ $("#downloadButton").click(function() {
             $(".downloadTypeText").text("user");
         } else {
             $(".downloadTypeText").text("subreddit");
-        }
-
-        if (!includeImages && !includeGifs) {
-            $("#includeImagesInput").checkbox("check");
-            includeImages = true;
         }
 
         /* Find images to scrape and start downloading */
