@@ -63,6 +63,13 @@ $("#downloadButton").click(function() {
         includeImages = $("#includeImagesInput").is(':checked');
         includeGifs = $("#includeGifsInput").is(':checked');
 
+        /* Handle the user entering /r/ or r/ before the sub name */
+        if (subName.startsWith("/r/")) {
+            subName = subName.substring(3);
+        } else if (subName.startsWith("r/")) {
+            subName = subName.substring(2);
+        }
+
         if (!includeImages && !includeGifs) {
             $("#includeImagesInput").prop("checked", true);
             includeImages = true;
