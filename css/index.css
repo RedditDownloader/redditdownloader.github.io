@@ -14,6 +14,6 @@ html, body {
     margin-top: 30px;
 }
 
-#unknownSubredditErrorBox, #noImagesFoundWarningBox, #downloadingInfoBox {
+#unknownNameErrorBox, #noImagesFoundWarningBox, #downloadingInfoBox {
     display: none;
 }
