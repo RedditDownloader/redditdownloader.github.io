@@ -73,12 +73,17 @@
 
         <div class="ui negative message" id="unknownSubredditErrorBox">
             <div class="header">Whoops!</div>
-            <p>It appears that there's no subreddit called <b id="subNameText"></b>.</p>
+            <p>It appears that there's no subreddit called <b class="subNameText"></b>.</p>
+        </div>
+
+        <div class="ui warning message" id="noImagesFoundWarningBox">
+            <div class="header">Whoops!</div>
+            <p>It appears that the subreddit <b class="subNameText"></b> doesn't have any content that matches your search query.</p>
         </div>
 
         <div class="ui message" id="downloadingInfoBox">
             <div class="header">Downloading images</div>
-            <p>You've downloaded <b id="downloadedCountText">0</b> of <b id="toDownloadCountText">0</b> images so far.</p>
+            <p>You've downloaded <b id="downloadedCountText"></b> of <b id="toDownloadCountText"></b> images so far.</p>
         </div>
     </div>
 

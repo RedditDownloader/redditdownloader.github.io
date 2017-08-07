@@ -49,6 +49,7 @@ $("#downloadButton").click(function() {
         /* Reset states */
         $('.ui.form').addClass("loading");
         $("#unknownSubredditErrorBox").hide();
+        $("#noImagesFoundWarningBox").hide();
         $("#downloadingInfoBox").show();
         downloadRequests.clear();
         downloadedCount = 0;
@@ -104,7 +105,7 @@ function download(maxImageCount, anchor) {
         dataType: "json",
         contentType: "application/json; charset=utf-8",
         success: function(result, status, xhr) {
-            /* Check if we have been redirected to the search page = subreddit doesn't exist */
+            /* Make sure we haven't been redirected to the search page = subreddit doesn't exist */
             if (xhr.getResponseHeader("X-Final-Url").indexOf(section + ".json") !== -1) {
                 var children = result.data.children;
 
@@ -166,7 +167,7 @@ function download(maxImageCount, anchor) {
                 }
             } else {
                 $("#unknownSubredditErrorBox").show();
-                $("#subNameText").text(subName);
+                $(".subNameText").text(subName);
                 doneDownloading();
             }
         },
@@ -174,7 +175,7 @@ function download(maxImageCount, anchor) {
             if (error.status === 404 || error.status === 403) {
                 /* If HTTP status is 404 or 403, the subreddit probably doesn't exist */
                 $("#unknownSubredditErrorBox").show();
-                $("#subNameText").text(subName);
+                $(".subNameText").text(subName);
             } else if (error.status !== 200) {
                 /* Notify user when a non-handled status code is received */
                 alert("Unknown status code " + error.status + " received from lookup request.\nPlease contact the developer.");
@@ -201,6 +202,12 @@ function doneDownloading() {
             .then(function(content) {
                 saveAs(content, subName + "_" + section + ".zip");
             });
+    } else {
+        /* Only show the "no images found" warning if the subreddit exists */
+        if (!$("#unknownSubredditErrorBox").is(":visible")) {
+            $("#noImagesFoundWarningBox").show();
+            $(".subNameText").text(subName);
+        }
     }
 
     $('.ui.form').removeClass("loading");
