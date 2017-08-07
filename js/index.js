@@ -4,6 +4,7 @@ var CHECK_DOWNLOADS_FINISHED_EVERY_MS = 100;
 /* User options */
 var subName;
 var includeNsfw;
+var includeImages;
 var includeGifs;
 
 var checkFinishedInterval;
@@ -56,6 +57,7 @@ $("#downloadButton").click(function() {
         /* Read user options */
         subName = $("#subNameInput").val();
         includeNsfw = $("#includeNsfwInput").is(':checked');
+        includeImages = $("#includeImagesInput").is(':checked');
         includeGifs = $("#includeGifsInput").is(':checked');
 
         /* Find images to scrape and start downloading */
@@ -154,8 +156,7 @@ function download(maxImageCount, anchor) {
 }
 
 function isUrlFileFormatAccepted(url) {
-    return url.indexOf(".jpg?") !== -1 
-        || url.indexOf(".png?") !== -1
+    return (includeImages && (url.indexOf(".jpg?") !== -1 || url.indexOf(".png?") !== -1))
         || (includeGifs && (url.indexOf(".gif?") !== -1 || url.indexOf(".gifv?") !== -1));
 }
 
