@@ -31,14 +31,24 @@ $(document).ready(function() {
             || $("#includeGifsInput").parent().checkbox("is checked");
     };
 
-    $(".ui.form").form({
-        fields: {
-            targetNameInput : "empty",
-            imageAmountInput : "integer[0..]",
-            includeImagesInput : "includeAny",
-            includeGifsInput : "includeAny"
-        }
-    });
+    $(".ui.form")
+        .form({
+            fields: {
+                targetNameInput : "empty",
+                imageAmountInput : "integer[0..]",
+                restrictByScoreValueInput : "integer[0..]",
+                includeImagesInput : "includeAny",
+                includeGifsInput : "includeAny"
+            },
+            on : "blur"
+        })
+        .on("change", "#includeImagesInput,#includeGifsInput", function(e) {
+            /* 
+                Removes the red text from include images/include 
+                animated images when one of them have been pressed.
+            */
+            $(".ui.form").form("validate form");
+        });
 
     $("#restrictByScoreInput").parent().checkbox({
         onChange: function() {
