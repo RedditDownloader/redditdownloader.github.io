@@ -171,3 +171,10 @@ function downloadImageAsBase64(url, callback) {
 
     downloadRequests.add(xhr);
 }
+
+// https://stackoverflow.com/a/30949767/4313694
+$('button').on('mousedown', 
+    function(event) {
+        event.preventDefault();
+    }
+);
