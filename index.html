@@ -52,8 +52,28 @@
 
             <div class="ui segment">
                 <div class="field">
-                    <div class="ui toggle checkbox">
-                        <input class="hidden" id="includeImagesInput" type="checkbox" checked>
+                    <div class="ui toggle checkbox" id="restrictByScoreInput">
+                        <input class="hidden" type="checkbox">
+                        <label>Restrict downloads by post score</label>
+                    </div>
+                </div>
+                <div class="two fields">
+                    <div class="field">
+                        <select class="ui search disabled dropdown" id="restrictByScoreTypeInput">
+                            <option value="ge">Greater Than or Equal To</option>
+                            <option value="le">Less Than or Equal To</option>
+                        </select>
+                    </div>
+                    <div class="field">
+                        <input id="restrictByScoreValueInput" type="number" min="0" value="100" disabled>
+                    </div>
+                </div>
+            </div>
+
+            <div class="ui segment">
+                <div class="field">
+                    <div class="ui toggle checkbox" id="includeImagesInput">
+                        <input class="hidden" type="checkbox" checked>
                         <label>Include images (jpg/png)</label>
                     </div>
                 </div>
@@ -61,8 +81,8 @@
 
             <div class="ui segment">
                 <div class="field">
-                    <div class="ui toggle checkbox">
-                        <input class="hidden" id="includeGifsInput" type="checkbox">
+                    <div class="ui toggle checkbox" id="includeGifsInput">
+                        <input class="hidden" type="checkbox">
                         <label>Include animated images/videos (gif/gifv)</label>
                     </div>
                 </div>
@@ -70,8 +90,8 @@
 
             <div class="ui segment">
                 <div class="field">
-                    <div class="ui toggle checkbox">
-                        <input class="hidden" id="includeNsfwInput" type="checkbox" checked>
+                    <div class="ui toggle checkbox" id="includeNsfwInput">
+                        <input class="hidden" type="checkbox" checked>
                         <label>Include material marked as NSFW (Not Safe For Work)</label>
                     </div>
                 </div>

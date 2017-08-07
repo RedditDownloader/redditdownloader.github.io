@@ -5,6 +5,9 @@ var CHECK_DOWNLOADS_FINISHED_EVERY_MS = 100;
 var subName;
 var section;
 var nameFormat;
+var restrictByScore;
+var restrictByScoreType;
+var restrictByScoreValue;
 var includeImages;
 var includeGifs;
 var includeNsfw;
@@ -35,20 +38,31 @@ $(document).ready(function() {
     $("#subNameInput").attr("placeholder", 
         subreddits[Math.floor(Math.random() * subreddits.length)]);
 
-    $('.ui.checkbox').checkbox();
-    $('select.dropdown').dropdown();
-    $('.ui.form').form({
+    $(".ui.checkbox").checkbox();
+    $("select.dropdown").dropdown();
+    $(".ui.form").form({
         fields: {
-            subNameInput : 'empty',
-            imageAmountInput : 'integer[0..]'
+            subNameInput : "empty",
+            imageAmountInput : "integer[0..]"
+        }
+    });
+
+    $("#restrictByScoreInput").checkbox({
+        onChange: function() {
+            if (this.checked) {
+                $("#restrictByScoreTypeInput").parent().removeClass("disabled");
+            } else {
+                $("#restrictByScoreTypeInput").parent().addClass("disabled");
+            }
+            $("#restrictByScoreValueInput").prop("disabled", !this.checked);
         }
     });
 });
 
 $("#downloadButton").click(function() {
-    if ($('.ui.form').form('validate form')) {
+    if ($(".ui.form").form("validate form")) {
         /* Reset states */
-        $('.ui.form').addClass("loading");
+        $(".ui.form").addClass("loading");
         $("#unknownSubredditErrorBox").hide();
         $("#noImagesFoundWarningBox").hide();
         $("#downloadingInfoBox").show();
@@ -62,9 +76,12 @@ $("#downloadButton").click(function() {
         subName = $("#subNameInput").val();
         section = $("#sectionInput").val();
         nameFormat = $("#nameFormatInput").val();
-        includeImages = $("#includeImagesInput").is(':checked');
-        includeGifs = $("#includeGifsInput").is(':checked');
-        includeNsfw = $("#includeNsfwInput").is(':checked');
+        restrictByScore = $("#restrictByScoreInput").checkbox("is checked");
+        restrictByScoreType = $("#restrictByScoreTypeInput").val();
+        restrictByScoreValue = $("#restrictByScoreValueInput").val();
+        includeImages = $("#includeImagesInput").checkbox("is checked");
+        includeGifs = $("#includeGifsInput").checkbox("is checked");
+        includeNsfw = $("#includeNsfwInput").checkbox("is checked");
 
         /* Handle the user entering /r/ or r/ before the sub name */
         if (subName.startsWith("/r/")) {
@@ -74,7 +91,7 @@ $("#downloadButton").click(function() {
         }
 
         if (!includeImages && !includeGifs) {
-            $("#includeImagesInput").prop("checked", true);
+            $("#includeImagesInput").checkbox("check");
             includeImages = true;
         }
 
@@ -118,47 +135,61 @@ function download(maxImageCount, anchor) {
                         var post = children[i].data;
 
                         /* Only download if there's a thumbnail */
-                        if (post.thumbnail_width !== null) {
-                            /* Respect user's nsfw option */
-                            if (includeNsfw || !post.over_18) {
-                                /* Check if there are any images, there should be, but let's make sure */
-                                if (post.preview !== undefined && post.preview.images.length > 0) {
-                                    var url = post.preview.images[0].source.url;
+                        if (post.thumbnail_width === null) {
+                            continue;
+                        }
 
-                                    if (isUrlFileFormatAccepted(url)) {
-                                        /* Force https */
-                                        if (url.startsWith("http:")) {
-                                            url = url.replace("http:", "https:");
-                                        }
+                        /* Respect user's nsfw option */
+                        if (!includeNsfw && post.over_18) {
+                            continue;
+                        }
 
-                                        toDownloadCount++;
-                                        downloadedCountNow++;
-                                        updateUI();
+                        /* Check if there are any images, there should be, but let's make sure */
+                        if (post.preview === undefined || post.preview.images.length == 0) {
+                            continue;
+                        }
 
-                                        downloadImageAsBase64(url, post, function(url, post, data) {
-                                            var destinationFileName;
+                        /* Don't download images that come from posts with greater/less score than inputted */
+                        if (restrictByScore) {
+                            if ((restrictByScoreType === "ge" && post.score < restrictByScoreValue)
+                                    || (restrictByScoreType === "le" && post.score > restrictByScoreValue)) {
+                                continue;
+                            } 
+                        }
 
-                                            if (nameFormat === "file-name") {
-                                                destinationFileName = getFileNameWithExtension(url);
-                                            } else if (nameFormat === "post-id") {
-                                                destinationFileName = post.name + getFileExtension(url);
-                                            } else {
-                                                /* default: post-name */
-                                                var regex = /[^\/]+(?=\/$|$)/g;
-                                                var postName = regex.exec(post.permalink)[0];
-                                                destinationFileName = postName + getFileExtension(url);
-                                            }
+                        var url = post.preview.images[0].source.url;
 
-                                            zip.file(destinationFileName, data, { base64: true });
-                                            downloadedCount++;
-                                            updateUI();
-                                        });
+                        if (isUrlFileFormatAccepted(url)) {
+                            /* Force https */
+                            if (url.startsWith("http:")) {
+                                url = url.replace("http:", "https:");
+                            }
 
-                                        if (downloadedCountNow == maxImageCount) {
-                                            break;
-                                        }
-                                    }
+                            toDownloadCount++;
+                            downloadedCountNow++;
+                            updateUI();
+
+                            downloadImageAsBase64(url, post, function(url, post, data) {
+                                var destinationFileName;
+
+                                if (nameFormat === "file-name") {
+                                    destinationFileName = getFileNameWithExtension(url);
+                                } else if (nameFormat === "post-id") {
+                                    destinationFileName = post.name + getFileExtension(url);
+                                } else {
+                                    /* default: post-name */
+                                    var regex = /[^\/]+(?=\/$|$)/g;
+                                    var postName = regex.exec(post.permalink)[0];
+                                    destinationFileName = postName + getFileExtension(url);
                                 }
+
+                                zip.file(destinationFileName, data, { base64: true });
+                                downloadedCount++;
+                                updateUI();
+                            });
+
+                            if (downloadedCountNow == maxImageCount) {
+                                break;
                             }
                         }
                     }
@@ -238,7 +269,7 @@ function doneDownloading() {
         }
     }
 
-    $('.ui.form').removeClass("loading");
+    $(".ui.form").removeClass("loading");
     $("#downloadingInfoBox").hide();
 }
 
@@ -249,19 +280,19 @@ function downloadImageAsBase64(url, post, callback) {
 
         var reader = new FileReader();
         reader.onloadend = function() {
-            callback(url, post, reader.result.split(',').pop());
+            callback(url, post, reader.result.split(",").pop());
         }
         reader.readAsDataURL(xhr.response);
     };
-    xhr.open('GET', CORS_PROXY_URL + url);
-    xhr.responseType = 'blob';
+    xhr.open("GET", CORS_PROXY_URL + url);
+    xhr.responseType = "blob";
     xhr.send();
 
     downloadRequests.add(xhr);
 }
 
 // https://stackoverflow.com/a/30949767/4313694
-$('button').on('mousedown', 
+$("button").on("mousedown", 
     function(event) {
         event.preventDefault();
     }
