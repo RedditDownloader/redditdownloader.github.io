@@ -40,8 +40,6 @@ $("#downloadButton").click(function() {
         includeNsfw = $("#includeNsfwInput").is(':checked');
         includeGifs = $("#includeGifsInput").is(':checked');
 
-        $("#downloadButton").addClass("loading");
-
         /* Find images to scrape and start downloading */
         var maxImageCount = $("#maxImageCountInput").val();
         download(maxImageCount);
@@ -149,7 +147,6 @@ function doneDownloading() {
             });
     }
 
-    $("#downloadButton").removeClass("loading");
     $('.ui.form').removeClass("loading");
     $("#downloadingInfoBox").hide();
 }
