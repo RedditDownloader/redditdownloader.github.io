@@ -5,9 +5,9 @@ var CHECK_DOWNLOADS_FINISHED_EVERY_MS = 100;
 var subName;
 var section;
 var nameFormat;
-var includeNsfw;
 var includeImages;
 var includeGifs;
+var includeNsfw;
 
 var checkFinishedInterval;
 var downloadRequests = new Set();
@@ -62,9 +62,9 @@ $("#downloadButton").click(function() {
         subName = $("#subNameInput").val();
         section = $("#sectionInput").val();
         nameFormat = $("#nameFormatInput").val();
-        includeNsfw = $("#includeNsfwInput").is(':checked');
         includeImages = $("#includeImagesInput").is(':checked');
         includeGifs = $("#includeGifsInput").is(':checked');
+        includeNsfw = $("#includeNsfwInput").is(':checked');
 
         /* Handle the user entering /r/ or r/ before the sub name */
         if (subName.startsWith("/r/")) {
