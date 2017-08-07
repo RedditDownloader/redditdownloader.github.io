@@ -65,7 +65,7 @@ $(document).ready(function() {
             if (this.checked) {
                 $("label[for=targetNameInput]").text("User Name");
                 $("#sectionInput").parent().addClass("disabled");
-                $("#targetNameInput").removeAttr("placeholder");
+                $("#targetNameInput").attr("placeholder", "uniquepassive");
             } else {
                 $("label[for=targetNameInput]").text("Subreddit Name");
                 $("#sectionInput").parent().removeClass("disabled");

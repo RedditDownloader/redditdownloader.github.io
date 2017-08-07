@@ -32,29 +32,30 @@
                     <input id="targetNameInput" type="text">
                 </div>
                 <div class="field">
-                    <label for="imageAmountInput">Download Amount</label>
-                    <input id="imageAmountInput" type="number" step="5" min="5" value="20">
+                    <label for="sectionInput">Section</label>
+                    <select class="ui search dropdown" id="sectionInput">
+                        <option value="hot">Hot</option>
+                        <option value="new">New</option>
+                        <option value="top">Top</option>
+                        <option value="rising">Rising</option>
+                        <option value="controversial">Controversial</option>
+                    </select>
                 </div>
             </div>
 
-            <div class="field">
-                <label for="sectionInput">Section</label>
-                <select class="ui search dropdown" id="sectionInput">
-                    <option value="hot">Hot</option>
-                    <option value="new">New</option>
-                    <option value="top">Top</option>
-                    <option value="rising">Rising</option>
-                    <option value="controversial">Controversial</option>
-                </select>
-            </div>
-
-            <div class="field">
-                <label for="nameFormatInput">Name Downloads By</label>
-                <select class="ui search dropdown" id="nameFormatInput">
-                    <option value="post-title">Post Title</option>
-                    <option value="post-id">Post ID</option>
-                    <option value="file-name">Downloaded File Name</option>
-                </select>
+            <div class="two fields">
+                <div class="field">
+                    <label for="nameFormatInput">Name Downloads By</label>
+                    <select class="ui search dropdown" id="nameFormatInput">
+                        <option value="post-title">Post Title</option>
+                        <option value="post-id">Post ID</option>
+                        <option value="file-name">Downloaded File Name</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label for="imageAmountInput">Download Amount</label>
+                    <input id="imageAmountInput" type="number" step="5" min="5" value="20">
+                </div>
             </div>
 
             <div class="ui segment">
