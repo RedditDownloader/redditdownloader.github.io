@@ -40,7 +40,7 @@ $(document).ready(function() {
         }
     });
 
-    $("#restrictByScoreInput").checkbox({
+    $("#restrictByScoreInput").parent().checkbox({
         onChange: function() {
             if (this.checked) {
                 $("#restrictByScoreTypeInput").parent().removeClass("disabled");
@@ -51,7 +51,7 @@ $(document).ready(function() {
         }
     });
 
-    $("#userDownloadInput").checkbox({
+    $("#userDownloadInput").parent().checkbox({
         onChange: function() {
             if (this.checked) {
                 $("label[for=targetNameInput]").text("User Name");
