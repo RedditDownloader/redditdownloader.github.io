@@ -179,18 +179,13 @@ function download(maxImageCount, anchor) {
             for (var i = 0; i < children.length; i++) {
                 var post = children[i].data;
 
-                /* Only download if there's a thumbnail */
-                if (post.thumbnail_width === null) {
+                /* Only download if there's a URL */
+                if (post.url === null) {
                     continue;
                 }
 
                 /* Respect user's nsfw option */
                 if (!includeNsfw && post.over_18) {
-                    continue;
-                }
-
-                /* Check if there are any images, there should be, but let's make sure */
-                if (post.preview === undefined || post.preview.images.length == 0) {
                     continue;
                 }
 
@@ -202,14 +197,9 @@ function download(maxImageCount, anchor) {
                     } 
                 }
 
-                var url = post.preview.images[0].source.url;
+                var url = post.url;
 
                 if (isUrlFileFormatAccepted(url)) {
-                    /* Force https */
-                    if (url.startsWith("http:")) {
-                        url = url.replace("http:", "https:");
-                    }
-
                     toDownloadCount++;
                     downloadedCountNow++;
                     updateUI();
@@ -270,8 +260,8 @@ function download(maxImageCount, anchor) {
 }
 
 function isUrlFileFormatAccepted(url) {
-    return (includeImages && (url.indexOf(".jpg?") !== -1 || url.indexOf(".png?") !== -1))
-        || (includeGifs && (url.indexOf(".gif?") !== -1 || url.indexOf(".gifv?") !== -1));
+    return (includeImages && (url.indexOf(".jpg") !== -1 || url.indexOf(".png") !== -1))
+        || (includeGifs && (url.indexOf(".gif") !== -1 || url.indexOf(".gifv") !== -1));
 }
 
 function getFileNameWithExtension(url) {
