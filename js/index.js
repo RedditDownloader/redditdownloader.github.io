@@ -39,8 +39,7 @@ $(document).ready(function() {
                 restrictByScoreValueInput : "integer[0..]",
                 includeImagesInput : "includeAny",
                 includeGifsInput : "includeAny"
-            },
-            on : "blur"
+            }
         })
         .on("change", "#includeImagesInput,#includeGifsInput", function(e) {
             /* 
