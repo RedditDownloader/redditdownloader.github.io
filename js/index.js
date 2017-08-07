@@ -64,12 +64,14 @@ function download(maxImageCount, anchor) {
         dataType: "json",
         contentType: "application/json; charset=utf-8",
         success: function(result, status, xhr) {
-            /* Check if we have been redirect to the search page = subreddit doesn't exist */
+            /* Check if we have been redirected to the search page = subreddit doesn't exist */
             if (xhr.getResponseHeader("X-Final-Url").indexOf("hot.json") !== -1) {
                 var children = result.data.children;
 
+                var downloadedCountNow = 0;
+
                 if (children.length > 0) {
-                    for (var i = 0; i < children.length; i++) {
+                    for (var i = 0; i < Math.min(children.length, maxImageCountNow); i++) {
                         var post = children[i].data;
 
                         if (includeNsfw || !post.over_18) {
@@ -83,6 +85,7 @@ function download(maxImageCount, anchor) {
                                     }
 
                                     toDownloadCount++;
+                                    downloadedCountNow++;
                                     updateUI();
 
                                     downloadImageAsBase64(url, function(url, data) {
@@ -96,7 +99,7 @@ function download(maxImageCount, anchor) {
                     }
                 }
 
-                maxImageCount -= maxImageCountNow;
+                maxImageCount -= downloadedCountNow;
 
                 if (children.length === 0 || maxImageCount === 0) {
                     checkFinishedInterval = setInterval(function() {
