@@ -60,6 +60,11 @@ $("#downloadButton").click(function() {
         includeImages = $("#includeImagesInput").is(':checked');
         includeGifs = $("#includeGifsInput").is(':checked');
 
+        if (!includeImages && !includeGifs) {
+            $("#includeImagesInput").prop("checked", true);
+            includeImages = true;
+        }
+
         /* Find images to scrape and start downloading */
         var maxImageCount = $("#imageAmountInput").val();
         download(maxImageCount);
