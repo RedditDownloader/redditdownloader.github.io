@@ -4,6 +4,7 @@ var CHECK_DOWNLOADS_FINISHED_EVERY_MS = 100;
 /* User options */
 var subName;
 var section;
+var nameFormat;
 var includeNsfw;
 var includeImages;
 var includeGifs;
@@ -60,6 +61,7 @@ $("#downloadButton").click(function() {
         /* Read user options */
         subName = $("#subNameInput").val();
         section = $("#sectionInput").val();
+        nameFormat = $("#nameFormatInput").val();
         includeNsfw = $("#includeNsfwInput").is(':checked');
         includeImages = $("#includeImagesInput").is(':checked');
         includeGifs = $("#includeGifsInput").is(':checked');
@@ -133,8 +135,21 @@ function download(maxImageCount, anchor) {
                                         downloadedCountNow++;
                                         updateUI();
 
-                                        downloadImageAsBase64(url, function(url, data) {
-                                            zip.file(url.replace(/(.+\/)/, "").replace(/(\?.+)/, ""), data, { base64: true });
+                                        downloadImageAsBase64(url, post, function(url, post, data) {
+                                            var destinationFileName;
+
+                                            if (nameFormat === "file-name") {
+                                                destinationFileName = getFileNameWithExtension(url);
+                                            } else if (nameFormat === "post-id") {
+                                                destinationFileName = post.name + getFileExtension(url);
+                                            } else {
+                                                /* default: post-name */
+                                                var regex = /[^\/]+(?=\/$|$)/g;
+                                                var postName = regex.exec(post.permalink)[0];
+                                                destinationFileName = postName + getFileExtension(url);
+                                            }
+
+                                            zip.file(destinationFileName, data, { base64: true });
                                             downloadedCount++;
                                             updateUI();
                                         });
@@ -190,6 +205,19 @@ function isUrlFileFormatAccepted(url) {
         || (includeGifs && (url.indexOf(".gif?") !== -1 || url.indexOf(".gifv?") !== -1));
 }
 
+function getFileNameWithExtension(url) {
+    var regex = /[^/\\&\?]+\.\w{3,4}(?=[\?&].*$|$)/;
+    var m = regex.exec(url);
+    return m[0];
+}
+
+function getFileExtension(url) {
+    var fileNameWithExt = getFileNameWithExtension(url);
+
+    return fileNameWithExt
+        .substring(fileNameWithExt.lastIndexOf("."));
+}
+
 function doneDownloading() {
     for (var xhr in downloadRequests) {
         xhr.abort();
@@ -214,14 +242,14 @@ function doneDownloading() {
     $("#downloadingInfoBox").hide();
 }
 
-function downloadImageAsBase64(url, callback) {
+function downloadImageAsBase64(url, post, callback) {
     var xhr = new XMLHttpRequest();
     xhr.onload = function() {
         downloadRequests.delete(this);
 
         var reader = new FileReader();
         reader.onloadend = function() {
-            callback(url, reader.result.split(',').pop());
+            callback(url, post, reader.result.split(',').pop());
         }
         reader.readAsDataURL(xhr.response);
     };
