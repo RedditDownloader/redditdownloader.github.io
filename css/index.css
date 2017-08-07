@@ -6,7 +6,7 @@ html, body {
 .container {
     max-width: 700px;
     margin: 0 auto;
-    padding: 80px 30px 80px 30px;
+    padding: 60px 30px 60px 30px;
     position: relative;
 }
 
