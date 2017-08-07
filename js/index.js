@@ -19,7 +19,7 @@ $(document).ready(function() {
     $('.ui.form').form({
         fields: {
             subNameInput : 'empty',
-            maxImageCountInput : 'integer[0..]'
+            imageAmountInput : 'integer[0..]'
         }
     });
 });
@@ -41,7 +41,7 @@ $("#downloadButton").click(function() {
         includeGifs = $("#includeGifsInput").is(':checked');
 
         /* Find images to scrape and start downloading */
-        var maxImageCount = $("#maxImageCountInput").val();
+        var maxImageCount = $("#imageAmountInput").val();
         download(maxImageCount);
     }
 });
