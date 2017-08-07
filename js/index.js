@@ -74,25 +74,30 @@ function download(maxImageCount, anchor) {
                     for (var i = 0; i < Math.min(children.length, maxImageCountNow); i++) {
                         var post = children[i].data;
 
-                        if (includeNsfw || !post.over_18) {
-                            if (post.preview !== undefined && post.preview.images.length > 0) {
-                                var url = post.preview.images[0].source.url;
+                        /* Only download if there's a thumbnail */
+                        if (post.thumbnail_width !== null) {
+                            /* Respect user's nsfw option */
+                            if (includeNsfw || !post.over_18) {
+                                /* Check if there are any images, there should be, but let's make sure */
+                                if (post.preview !== undefined && post.preview.images.length > 0) {
+                                    var url = post.preview.images[0].source.url;
 
-                                if (isUrlFileFormatAccepted(url)) {
-                                    /* Force https */
-                                    if (url.startsWith("http:")) {
-                                        url = url.replace("http:", "https:");
-                                    }
+                                    if (isUrlFileFormatAccepted(url)) {
+                                        /* Force https */
+                                        if (url.startsWith("http:")) {
+                                            url = url.replace("http:", "https:");
+                                        }
 
-                                    toDownloadCount++;
-                                    downloadedCountNow++;
-                                    updateUI();
-
-                                    downloadImageAsBase64(url, function(url, data) {
-                                        zip.file(url.replace(/(.+\/)/, "").replace(/(\?.+)/, ""), data, { base64: true });
-                                        downloadedCount++;
+                                        toDownloadCount++;
+                                        downloadedCountNow++;
                                         updateUI();
-                                    });
+
+                                        downloadImageAsBase64(url, function(url, data) {
+                                            zip.file(url.replace(/(.+\/)/, "").replace(/(\?.+)/, ""), data, { base64: true });
+                                            downloadedCount++;
+                                            updateUI();
+                                        });
+                                    }
                                 }
                             }
                         }
