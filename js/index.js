@@ -80,6 +80,11 @@ function download(maxImageCount, anchor) {
     /* Max 100 posts per request */
     var maxImageCountNow = Math.min(maxImageCount, 100);
 
+    /* Prevent extreme amounts of requests in the case that maxImageCountNow is for example 1 */
+    if (maxImageCountNow < 50) {
+        maxImageCountNow = 50;
+    }
+
     $.ajax({
         url: CORS_PROXY_URL 
             + "https://www.reddit.com/r/" + subName 
@@ -96,7 +101,7 @@ function download(maxImageCount, anchor) {
                 var downloadedCountNow = 0;
 
                 if (children.length > 0) {
-                    for (var i = 0; i < Math.min(children.length, maxImageCountNow); i++) {
+                    for (var i = 0; i < children.length; i++) {
                         var post = children[i].data;
 
                         /* Only download if there's a thumbnail */
@@ -122,6 +127,10 @@ function download(maxImageCount, anchor) {
                                             downloadedCount++;
                                             updateUI();
                                         });
+
+                                        if (downloadedCountNow == maxImageCount) {
+                                            break;
+                                        }
                                     }
                                 }
                             }
