@@ -14,6 +14,14 @@ html, body {
     margin-top: 30px;
 }
 
+/* semantic ui overrides */
+.ui.toggle.checkbox label::before {
+    background: #E0E1E2 !important;
+}
+.ui.toggle.checkbox label:hover::before {
+  background-color: #CACBCD !important;
+}
+
 #unknownNameErrorBox, #noImagesFoundWarningBox, #downloadingInfoBox {
     display: none;
 }
