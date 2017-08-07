@@ -3,6 +3,7 @@ var CHECK_DOWNLOADS_FINISHED_EVERY_MS = 100;
 
 /* User options */
 var subName;
+var section;
 var includeNsfw;
 var includeImages;
 var includeGifs;
@@ -34,6 +35,7 @@ $(document).ready(function() {
         subreddits[Math.floor(Math.random() * subreddits.length)]);
 
     $('.ui.checkbox').checkbox();
+    $('select.dropdown').dropdown();
     $('.ui.form').form({
         fields: {
             subNameInput : 'empty',
@@ -56,6 +58,7 @@ $("#downloadButton").click(function() {
 
         /* Read user options */
         subName = $("#subNameInput").val();
+        section = $("#sectionInput").val();
         includeNsfw = $("#includeNsfwInput").is(':checked');
         includeImages = $("#includeImagesInput").is(':checked');
         includeGifs = $("#includeGifsInput").is(':checked');
@@ -88,14 +91,14 @@ function download(maxImageCount, anchor) {
     $.ajax({
         url: CORS_PROXY_URL 
             + "https://www.reddit.com/r/" + subName 
-            + "/hot.json?limit=" + maxImageCountNow 
+            + "/" + section + ".json?limit=" + maxImageCountNow 
             + (anchor !== undefined ? "&after=" + anchor : ""),
         type: "GET",
         dataType: "json",
         contentType: "application/json; charset=utf-8",
         success: function(result, status, xhr) {
             /* Check if we have been redirected to the search page = subreddit doesn't exist */
-            if (xhr.getResponseHeader("X-Final-Url").indexOf("hot.json") !== -1) {
+            if (xhr.getResponseHeader("X-Final-Url").indexOf(section + ".json") !== -1) {
                 var children = result.data.children;
 
                 var downloadedCountNow = 0;
@@ -184,7 +187,7 @@ function doneDownloading() {
     if (downloadedCount > 0) {
         zip.generateAsync({ type:"blob" })
             .then(function(content) {
-                saveAs(content, "r-" + subName + "-images.zip");
+                saveAs(content, subName + "_" + section + ".zip");
             });
     }
 
