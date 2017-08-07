@@ -157,7 +157,12 @@ function download(maxImageCount, anchor) {
                         }
                     }, CHECK_DOWNLOADS_FINISHED_EVERY_MS);
                 } else {
-                    download(maxImageCount, result.data.after);
+                    if (result.data.after !== null) {
+                        download(maxImageCount, result.data.after);
+                    } else {
+                        /* If there are no more posts, quit */
+                        doneDownloading();
+                    }
                 }
             } else {
                 $("#unknownSubredditErrorBox").show();
