@@ -76,11 +76,12 @@ $(document).ready(function() {
 });
 
 $("#downloadButton").click(function() {
+    $("#unknownNameErrorBox").hide();
+    $("#noImagesFoundWarningBox").hide();
+
     if ($(".ui.form").form("validate form")) {
         /* Reset states */
         $(".ui.form").addClass("loading");
-        $("#unknownNameErrorBox").hide();
-        $("#noImagesFoundWarningBox").hide();
         $("#downloadingInfoBox").show();
         downloadRequests.clear();
         downloadedCount = 0;
