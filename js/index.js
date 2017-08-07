@@ -5,6 +5,7 @@ var CHECK_DOWNLOADS_FINISHED_EVERY_MS = 100;
 var userDownload;
 var targetName;
 var section;
+var maxImageCount;
 var nameFormat;
 var restrictByScore;
 var restrictByScoreType;
@@ -126,8 +127,8 @@ $("#downloadButton").click(function() {
         }
 
         /* Find images to scrape and start downloading */
-        var maxImageCount = $("#imageAmountInput").val();
-        download(maxImageCount);
+        maxImageCount = $("#imageAmountInput").val();
+        download();
     }
 });
 
@@ -136,9 +137,9 @@ function updateUI() {
     $("#toDownloadCountText").text(toDownloadCount);
 }
 
-function download(maxImageCount, anchor) {
+function download(anchor) {
     /* Max 100 posts per request */
-    var maxImageCountNow = Math.min(maxImageCount, 100);
+    var maxImageCountNow = Math.min(maxImageCount - toDownloadCount, 100);
 
     /* Prevent extreme amounts of requests in the case that maxImageCountNow is for example 1 */
     if (maxImageCountNow < 50) {
@@ -174,9 +175,11 @@ function download(maxImageCount, anchor) {
 
             var children = result.data.children;
 
-            var downloadedCountNow = 0;
-
             for (var i = 0; i < children.length; i++) {
+                if (toDownloadCount >= maxImageCount) { 
+                    break; 
+                }
+
                 var post = children[i].data;
 
                 /* Only download if there's a URL */
@@ -200,50 +203,76 @@ function download(maxImageCount, anchor) {
                 var url = post.url;
 
                 if (isUrlFileFormatAccepted(url)) {
+                    /* Handle item with extension (direct link) */
                     toDownloadCount++;
-                    downloadedCountNow++;
-                    updateUI();
+                    downloadUrl(url, post);
+                } else if (url.startsWith("http://imgur.com/a/") || url.startsWith("https://imgur.com/a/")) {
+                    /* Handle downloading an album */
+                    var imageName = url.substring(url.lastIndexOf("/") + 1);
 
-                    downloadImageAsBase64(url, post, function(url, post, data) {
-                        var destinationFileName;
+                    $.ajax({
+                        url: "https://api.imgur.com/3/album/" + imageName,
+                        type: "GET",
+                        dataType: "json",
+                        contentType: "application/json; charset=utf-8",
+                        headers: {
+                            "authorization": "Client-ID 326b1cb24da9d5e"
+                        },
+                        post: post, // pass to success function
+                        success: function(result, status, xhr) {
+                            var images = result.data.images;
 
-                        if (nameFormat === "file-name") {
-                            destinationFileName = getFileNameWithExtension(url);
-                        } else if (nameFormat === "post-id") {
-                            destinationFileName = post.name + getFileExtension(url);
-                        } else {
-                            /* default: post-name */
-                            var regex = /[^\/]+(?=\/$|$)/g;
-                            var postName = regex.exec(post.permalink)[0];
-                            destinationFileName = postName + getFileExtension(url);
+                            for (var i = 0; i < images.length; i++) {
+                                if (toDownloadCount >= maxImageCount) {
+                                    break;
+                                }
+
+                                toDownloadCount++;
+
+                                var url = images[i].link;
+                                downloadUrl(url, this.post);
+                            }
+                        },
+                        error: function(error) {
+                            doneDownloading();
+                            alert("Accessing the Imgur API failed!\nPlease contact the developer.");
                         }
-
-                        zip.file(destinationFileName, data, { base64: true });
-                        downloadedCount++;
-                        updateUI();
                     });
+                } else if (url.startsWith("http://imgur.com/") || url.startsWith("https://imgur.com/")) {
+                    /* Handle downloading a single-image album */
+                    toDownloadCount++;
 
-                    if (downloadedCountNow == maxImageCount) {
-                        break;
-                    }
+                    var imageName = url.substring(url.lastIndexOf("/") + 1);
+
+                    $.ajax({
+                        url: "https://api.imgur.com/3/image/" + imageName,
+                        type: "GET",
+                        dataType: "json",
+                        contentType: "application/json; charset=utf-8",
+                        headers: {
+                            "authorization": "Client-ID 326b1cb24da9d5e"
+                        },
+                        post: post, // pass to success function
+                        success: function(result, status, xhr) {
+                            var url = result.data.link;
+                            downloadUrl(url, this.post);
+                        },
+                        error: function(error) {
+                            doneDownloading();
+                            alert("Accessing the Imgur API failed!\nPlease contact the developer.");
+                        }
+                    });
                 }
             }
 
-            maxImageCount -= downloadedCountNow;
-
-            if (children.length === 0 || maxImageCount === 0) {
+            if (children.length === 0 || toDownloadCount >= maxImageCount || result.data.after === null) {
                 checkFinishedInterval = setInterval(function() {
-                    if (downloadedCount == toDownloadCount) {
+                    if (downloadedCount === toDownloadCount) {
                         doneDownloading();
                     }
                 }, CHECK_DOWNLOADS_FINISHED_EVERY_MS);
             } else {
-                if (result.data.after !== null) {
-                    download(maxImageCount, result.data.after);
-                } else {
-                    /* If there are no more posts, quit */
-                    doneDownloading();
-                }
+                download(result.data.after);
             }
         },
         error: function(error) {
@@ -256,6 +285,27 @@ function download(maxImageCount, anchor) {
             }
             doneDownloading();
         }
+    });
+}
+
+function downloadUrl(url, post) {
+    downloadImageAsBase64(url, post, function(url, post, data) {
+        var destinationFileName;
+
+        if (nameFormat === "file-name") {
+            destinationFileName = getFileNameWithExtension(url);
+        } else if (nameFormat === "post-id") {
+            destinationFileName = post.name + getFileExtension(url);
+        } else {
+            /* default: post-name */
+            var regex = /[^\/]+(?=\/$|$)/g;
+            var postName = regex.exec(post.permalink)[0];
+            destinationFileName = postName + getFileExtension(url);
+        }
+
+        zip.file(destinationFileName, data, { base64: true });
+        downloadedCount++;
+        updateUI();
     });
 }
 
