@@ -98,6 +98,8 @@ $("#downloadButton").click(function() {
             }
         }
 
+        $(".targetNameText").text(targetName);
+
         if (userDownload) {
             $(".downloadTypeText").text("user");
         } else {
@@ -152,7 +154,6 @@ function download(maxImageCount, anchor) {
             /* Make sure we haven't been redirected to the search page = subreddit doesn't exist */
             if (!userDownload && xhr.getResponseHeader("X-Final-Url").indexOf(section + ".json") === -1) {
                 $("#unknownNameErrorBox").show();
-                $(".targetNameText").text(targetName);
                 doneDownloading();
                 return;
             }
@@ -245,7 +246,6 @@ function download(maxImageCount, anchor) {
             if (error.status === 404 || error.status === 403) {
                 /* If HTTP status is 404 or 403, the subreddit probably doesn't exist */
                 $("#unknownNameErrorBox").show();
-                $(".targetNameText").text(targetName);
             } else if (error.status !== 200) {
                 /* Notify user when a non-handled status code is received */
                 alert("Unknown status code " + error.status + " received from lookup request.\nPlease contact the developer.");
@@ -289,7 +289,6 @@ function doneDownloading() {
         /* Only show the "no images found" warning if the subreddit exists */
         if (!$("#unknownNameErrorBox").is(":visible")) {
             $("#noImagesFoundWarningBox").show();
-            $(".targetNameText").text(targetName);
         }
     }
 
