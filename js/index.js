@@ -64,11 +64,11 @@ $(document).ready(function() {
         onChange: function() {
             if (this.checked) {
                 $("label[for=targetNameInput]").text("User Name");
-                $("#sectionInput").parent().parent().fadeOut("fast");
+                $("#sectionInput").parent().addClass("disabled");
                 $("#targetNameInput").removeAttr("placeholder");
             } else {
                 $("label[for=targetNameInput]").text("Subreddit Name");
-                $("#sectionInput").parent().parent().fadeIn("fast");
+                $("#sectionInput").parent().removeClass("disabled");
                 setRandomNamePlaceholder();
             }
         }
