@@ -14,8 +14,26 @@ var toDownloadCount;
 var zip = new JSZip();
 
 $(document).ready(function() {
-    $('.ui.checkbox').checkbox();
+    /* 
+        Puts a random subreddit as sub name inputbox placeholder,
+        list taken from https://www.reddit.com/reddits 
+    */
+    var subreddits = [
+        "funny",
+        "pics",
+        "me_irl",
+        "aww",
+        "dankmemes",
+        "mildlyinteresting",
+        "AdviceAnimals",
+        "CrappyDesign",
+        "OldSchoolCool",
+        "2007scape"
+    ];
+    $("#subNameInput").attr("placeholder", 
+        subreddits[Math.floor(Math.random() * subreddits.length)]);
 
+    $('.ui.checkbox').checkbox();
     $('.ui.form').form({
         fields: {
             subNameInput : 'empty',
