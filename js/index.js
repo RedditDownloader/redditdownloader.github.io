@@ -11,8 +11,7 @@ var checkFinishedInterval;
 var downloadRequests = new Set();
 var downloadedCount;
 var toDownloadCount;
-
-var zip = new JSZip();
+var zip;
 
 $(document).ready(function() {
     /* 
@@ -52,6 +51,7 @@ $("#downloadButton").click(function() {
         downloadRequests.clear();
         downloadedCount = 0;
         toDownloadCount = 0;
+        zip = new JSZip();
         updateUI();
 
         /* Read user options */
