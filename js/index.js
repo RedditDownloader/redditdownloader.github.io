@@ -202,7 +202,17 @@ function download(anchor) {
 
                 var url = post.url;
 
-                if (isUrlFileFormatAccepted(url)) {
+                /* Continue if direct url is a gif and user doesn't want to download gifs */
+                if (!includeGifs && (url.indexOf(".gif") !== -1 || url.indexOf(".gifv") !== -1)) {
+                    continue;
+                }
+
+                /* Continue if direct url is an image and user doesn't want to download images */
+                if (!includeImages && (url.indexOf(".jpg") !== -1 || url.indexOf(".png") !== -1)) {
+                    continue;
+                }
+
+                if (isUrlDirect(url)) {
                     /* Handle item with extension (direct link) */
                     toDownloadCount++;
                     downloadUrl(url, post);
@@ -309,9 +319,9 @@ function downloadUrl(url, post) {
     });
 }
 
-function isUrlFileFormatAccepted(url) {
-    return (includeImages && (url.indexOf(".jpg") !== -1 || url.indexOf(".png") !== -1))
-        || (includeGifs && (url.indexOf(".gif") !== -1 || url.indexOf(".gifv") !== -1));
+function isUrlDirect(url) {
+    return url.indexOf(".jpg") !== -1 || url.indexOf(".png") !== -1 
+        || url.indexOf(".gif") !== -1 || url.indexOf(".gifv") !== -1;
 }
 
 function getFileNameWithExtension(url) {
