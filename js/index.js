@@ -244,8 +244,11 @@ function download(anchor) {
                             }
                         },
                         error: function(error) {
-                            doneDownloading();
-                            alert("Accessing the Imgur API failed!\nPlease contact the developer.");
+                            if (!error.responseJSON.data.error.startsWith("Unable to find")) {
+                                doneDownloading();
+                                alert("Accessing the Imgur API failed!\nPlease contact the developer.\nResponse code: " 
+                                    + error.status + "\nResponse: " + error.responseText);
+                            }
                         }
                     });
                 } else if (url.startsWith("http://imgur.com/") || url.startsWith("https://imgur.com/")) {
@@ -268,8 +271,11 @@ function download(anchor) {
                             downloadUrl(url, this.post);
                         },
                         error: function(error) {
-                            doneDownloading();
-                            alert("Accessing the Imgur API failed!\nPlease contact the developer.");
+                            if (!error.responseJSON.data.error.startsWith("Unable to find")) {
+                                doneDownloading();
+                                alert("Accessing the Imgur API failed!\nPlease contact the developer.\nResponse code: " 
+                                    + error.status + "\nResponse: " + error.responseText);
+                            }
                         }
                     });
                 }
