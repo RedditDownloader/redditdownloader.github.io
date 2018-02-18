@@ -338,6 +338,14 @@ function getFileExtension(url) {
 }
 
 function doneDownloading() {
+    // only run the "done" code if we're downloading
+    if (!$(".ui.form").hasClass("loading")) {
+        return;
+    }
+
+    $(".ui.form").removeClass("loading");
+    $("#downloadingInfoBox").hide();
+
     for (var xhr in downloadRequests) {
         xhr.abort();
     }
@@ -355,9 +363,6 @@ function doneDownloading() {
             $("#noImagesFoundWarningBox").show();
         }
     }
-
-    $(".ui.form").removeClass("loading");
-    $("#downloadingInfoBox").hide();
 }
 
 function downloadImageAsBase64(url, post, callback) {
