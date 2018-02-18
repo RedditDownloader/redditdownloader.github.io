@@ -181,9 +181,10 @@ function download(anchor) {
                 }
 
                 var post = children[i].data;
+                var url = post.url;
 
                 /* Only download if there's a URL */
-                if (post.url === null) {
+                if (url == null) {
                     continue;
                 }
 
@@ -199,8 +200,6 @@ function download(anchor) {
                         continue;
                     } 
                 }
-
-                var url = post.url;
 
                 /* Continue if direct url is a gif and user doesn't want to download gifs */
                 if (!includeGifs && (url.indexOf(".gif") !== -1 || url.indexOf(".gifv") !== -1)) {
