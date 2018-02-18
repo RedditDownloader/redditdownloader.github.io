@@ -249,6 +249,7 @@ function download(anchor) {
                                 alert("Accessing the Imgur API failed!\nPlease contact the developer.\nResponse code: " 
                                     + error.status + "\nResponse: " + error.responseText);
                             }
+                            toDownloadCount--;
                         }
                     });
                 } else if (url.startsWith("http://imgur.com/") || url.startsWith("https://imgur.com/")) {
@@ -276,6 +277,7 @@ function download(anchor) {
                                 alert("Accessing the Imgur API failed!\nPlease contact the developer.\nResponse code: " 
                                     + error.status + "\nResponse: " + error.responseText);
                             }
+                            toDownloadCount--;
                         }
                     });
                 }
@@ -305,24 +307,29 @@ function download(anchor) {
 }
 
 function downloadUrl(url, post) {
-    downloadImageAsBase64(url, post, function(url, post, data) {
-        var destinationFileName;
+    downloadImageAsBase64(url, post, 
+        function(url, post, data) {
+            var destinationFileName;
 
-        if (nameFormat === "file-name") {
-            destinationFileName = getFileNameWithExtension(url);
-        } else if (nameFormat === "post-id") {
-            destinationFileName = post.name + getFileExtension(url);
-        } else {
-            /* default: post-name */
-            var regex = /[^\/]+(?=\/$|$)/g;
-            var postName = regex.exec(post.permalink)[0];
-            destinationFileName = postName + getFileExtension(url);
+            if (nameFormat === "file-name") {
+                destinationFileName = getFileNameWithExtension(url);
+            } else if (nameFormat === "post-id") {
+                destinationFileName = post.name + getFileExtension(url);
+            } else {
+                /* default: post-name */
+                var regex = /[^\/]+(?=\/$|$)/g;
+                var postName = regex.exec(post.permalink)[0];
+                destinationFileName = postName + getFileExtension(url);
+            }
+
+            zip.file(destinationFileName, data, { base64: true });
+            downloadedCount++;
+            updateUI();
+        },
+        function() {
+            toDownloadCount--;
         }
-
-        zip.file(destinationFileName, data, { base64: true });
-        downloadedCount++;
-        updateUI();
-    });
+    );
 }
 
 function isUrlDirect(url) {
@@ -371,7 +378,7 @@ function doneDownloading() {
     }
 }
 
-function downloadImageAsBase64(url, post, callback) {
+function downloadImageAsBase64(url, post, callback, errored) {
     var xhr = new XMLHttpRequest();
     xhr.onload = function() {
         downloadRequests.delete(this);
@@ -381,6 +388,9 @@ function downloadImageAsBase64(url, post, callback) {
             callback(url, post, reader.result.split(",").pop());
         }
         reader.readAsDataURL(xhr.response);
+    };
+    xhr.onerror = function() {
+        errored();
     };
     xhr.open("GET", CORS_PROXY_URL + url);
     xhr.responseType = "blob";
