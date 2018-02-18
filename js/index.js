@@ -284,8 +284,15 @@ function download(anchor) {
             }
 
             if (children.length === 0 || toDownloadCount >= maxImageCount || result.data.after === null) {
+                var reasonWasMaxImageCount = toDownloadCount >= maxImageCount;
+
                 checkFinishedInterval = setInterval(function() {
-                    if (downloadedCount === toDownloadCount) {
+                    if (reasonWasMaxImageCount && toDownloadCount < maxImageCount) {
+                        // this happens if an image has failed to download
+                        // and we need to try to download more images
+                        clearInterval(checkFinishedInterval);
+                        download(result.data.after);
+                    } else if (downloadedCount === toDownloadCount) {
                         doneDownloading();
                     }
                 }, CHECK_DOWNLOADS_FINISHED_EVERY_MS);
