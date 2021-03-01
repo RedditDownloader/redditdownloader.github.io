@@ -65,13 +65,17 @@ $(document).ready(function() {
         onChange: function() {
             if (this.checked) {
                 $("label[for=targetNameInput]").text("User Name");
-                $("#sectionInput").parent().addClass("disabled");
                 $("#targetNameInput").attr("placeholder", "uniquepassive");
+                $("#sectionInput").parent().addClass("disabled");
+                $("#searchFilterInput").prop("disabled", true);
             } else {
                 $("label[for=targetNameInput]").text("Subreddit Name");
                 $("#sectionInput").parent().removeClass("disabled");
+                $("#searchFilterInput").prop("disabled", false);
                 setRandomNamePlaceholder();
             }
+            $("#targetNameInput").focus();
+            $("#targetNameInput").select();
         }
     });
 });
@@ -95,6 +99,7 @@ $("#downloadButton").click(function() {
         targetName = $("#targetNameInput").val();
         section = $("#sectionInput").val();
         sectionTimespan = ""; // Set further down if section contains a timespan (eg. section is "top-week")
+        searchFilter = $("#searchFilterInput").val();
         nameFormat = $("#nameFormatInput").val();
         restrictByScore = $("#restrictByScoreInput").parent().checkbox("is checked");
         restrictByScoreType = $("#restrictByScoreTypeInput").val();
@@ -160,10 +165,16 @@ function download(anchor) {
             + "https://www.reddit.com/user/" + targetName
             + ".json?limit=" + maxImageCountNow
             + (anchor !== undefined ? "&after=" + anchor : "");
+    } else if (searchFilter) {
+        url = CORS_PROXY_URL
+            + "https://www.reddit.com/r/" + targetName
+            + "/search.json?q=" + searchFilter + "&restrict_sr=on&limit=" + maxImageCountNow
+            + (includeNsfw ? "&include_over_18=on" : "")
+            + (anchor !== undefined ? "&after=" + anchor : "");
     } else {
-        url = CORS_PROXY_URL 
-            + "https://www.reddit.com/r/" + targetName 
-            + "/" + section + ".json?limit=" + maxImageCountNow 
+        url = CORS_PROXY_URL
+            + "https://www.reddit.com/r/" + targetName
+            + "/" + section + ".json?limit=" + maxImageCountNow
             + (anchor !== undefined ? "&after=" + anchor : "");
     }
     if (sectionTimespan) {
@@ -177,7 +188,7 @@ function download(anchor) {
         contentType: "application/json; charset=utf-8",
         success: function(result, status, xhr) {
             /* Make sure we haven't been redirected to the search page = subreddit doesn't exist */
-            if (!userDownload && xhr.getResponseHeader("X-Final-Url").indexOf(section + ".json") === -1) {
+            if (!userDownload && !searchFilter && xhr.getResponseHeader("X-Final-Url").indexOf(section + ".json") === -1) {
                 $("#unknownNameErrorBox").show();
                 doneDownloading();
                 return;
