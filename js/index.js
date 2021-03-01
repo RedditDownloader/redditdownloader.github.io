@@ -94,6 +94,7 @@ $("#downloadButton").click(function() {
         userDownload = $("#userDownloadInput").parent().checkbox("is checked");
         targetName = $("#targetNameInput").val();
         section = $("#sectionInput").val();
+        sectionTimespan = ""; // Set further down if section contains a timespan (eg. section is "top-week")
         nameFormat = $("#nameFormatInput").val();
         restrictByScore = $("#restrictByScoreInput").parent().checkbox("is checked");
         restrictByScoreType = $("#restrictByScoreTypeInput").val();
@@ -124,6 +125,12 @@ $("#downloadButton").click(function() {
             $(".downloadTypeText").text("user");
         } else {
             $(".downloadTypeText").text("subreddit");
+        }
+        
+        if (section.includes("-")) {
+            var split = section.split("-");
+            section = split[0];
+            sectionTimespan = split[1];
         }
 
         /* Find images to scrape and start downloading */
@@ -158,6 +165,9 @@ function download(anchor) {
             + "https://www.reddit.com/r/" + targetName 
             + "/" + section + ".json?limit=" + maxImageCountNow 
             + (anchor !== undefined ? "&after=" + anchor : "");
+    }
+    if (sectionTimespan) {
+        url += "&t=" + sectionTimespan;
     }
 
     $.ajax({
