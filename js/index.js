@@ -257,6 +257,11 @@ function download(anchor) {
                                     break;
                                 }
 
+                                if (!includeGifs && result.data.animated 
+                                    || !includeImages && !result.data.animated) {
+                                    continue;
+                                }
+
                                 toDownloadCount++;
 
                                 var url = images[i].link;
@@ -288,6 +293,11 @@ function download(anchor) {
                         },
                         post: post, // pass to success function
                         success: function(result, status, xhr) {
+                            if (!includeGifs && result.data.animated 
+                                || !includeImages && !result.data.animated) {
+                                return;
+                            }
+
                             var url = result.data.link;
                             downloadUrl(url, this.post);
                         },
