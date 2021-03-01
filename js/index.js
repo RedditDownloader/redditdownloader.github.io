@@ -264,7 +264,7 @@ function download(anchor) {
                             }
                         },
                         error: function(error) {
-                            if (!error.responseJSON.data.error.startsWith("Unable to find")) {
+                            if (error.status !== 404) {
                                 doneDownloading();
                                 alert("Accessing the Imgur API failed!\nPlease contact the developer.\nResponse code: " 
                                     + error.status + "\nResponse: " + error.responseText);
@@ -292,7 +292,7 @@ function download(anchor) {
                             downloadUrl(url, this.post);
                         },
                         error: function(error) {
-                            if (!error.responseJSON.data.error.startsWith("Unable to find")) {
+                            if (error.status !== 404) {
                                 doneDownloading();
                                 alert("Accessing the Imgur API failed!\nPlease contact the developer.\nResponse code: " 
                                     + error.status + "\nResponse: " + error.responseText);
