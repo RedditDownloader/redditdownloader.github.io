@@ -360,7 +360,10 @@ function downloadUrl(url, post) {
                 fileName = oldFileName;
             }
 
-            zip.file(fileName + extension, data, { base64: true });
+            zip.file(fileName + extension, data, { 
+                base64: true,
+                date: new Date(post.created_utc * 1000)
+            });
             downloadedCount++;
             updateUI();
         },
