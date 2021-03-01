@@ -1,4 +1,4 @@
-var CORS_PROXY_URL = "https://cors-anywhere.herokuapp.com/";
+var CORS_PROXY_URL = "https://cors.bridged.cc/";
 var CHECK_DOWNLOADS_FINISHED_EVERY_MS = 100;
 
 /* User options */
