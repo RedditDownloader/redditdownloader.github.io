@@ -336,20 +336,31 @@ function download(anchor) {
 function downloadUrl(url, post) {
     downloadImageAsBase64(url, post, 
         function(url, post, data) {
-            var destinationFileName;
+            var fileName;
+            var extension = getFileExtension(url);
 
             if (nameFormat === "file-name") {
-                destinationFileName = getFileNameWithExtension(url);
+                fileName = getFileName(url);
             } else if (nameFormat === "post-id") {
-                destinationFileName = post.name + getFileExtension(url);
+                fileName = post.name;
             } else {
                 /* default: post-name */
                 var regex = /[^\/]+(?=\/$|$)/g;
-                var postName = regex.exec(post.permalink)[0];
-                destinationFileName = postName + getFileExtension(url);
+                fileName = regex.exec(post.permalink)[0];
             }
 
-            zip.file(destinationFileName, data, { base64: true });
+            /* post-id is the only file name guaranteed to be unique */
+            if (nameFormat !== "post-id") {
+                /* Make sure we don't overwrite a saved file */
+                var oldFileName = fileName;
+                var counter = 0;
+                while (zip.file(oldFileName + extension)) {
+                    oldFileName = fileName + "_" + counter++;
+                }
+                fileName = oldFileName;
+            }
+
+            zip.file(fileName + extension, data, { base64: true });
             downloadedCount++;
             updateUI();
         },
@@ -370,11 +381,14 @@ function getFileNameWithExtension(url) {
     return m[0];
 }
 
+function getFileName(url) {
+    var fileNameWithExt = getFileNameWithExtension(url);
+    return fileNameWithExt.substring(0, fileNameWithExt.lastIndexOf("."));
+}
+
 function getFileExtension(url) {
     var fileNameWithExt = getFileNameWithExtension(url);
-
-    return fileNameWithExt
-        .substring(fileNameWithExt.lastIndexOf("."));
+    return fileNameWithExt.substring(fileNameWithExt.lastIndexOf("."));
 }
 
 function doneDownloading() {
