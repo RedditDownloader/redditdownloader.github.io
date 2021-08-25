@@ -300,6 +300,9 @@ function download(anchor) {
                                     || !includeImages && isDirectImageUrl(url)) {
                                     continue;
                                 }
+                                if (!includeNsfw && result.data.nsfw) {
+                                    continue;
+                                }
 
                                 toDownloadCount++;
                                 downloadUrl(url, this.post);
@@ -334,6 +337,9 @@ function download(anchor) {
                             if (!includeGifs && isDirectGifUrl(url)
                                 || !includeVideos && isDirectVideoUrl(url)
                                 || !includeImages && isDirectImageUrl(url)) {
+                                return;
+                            }
+                            if (!includeNsfw && result.data.nsfw) {
                                 return;
                             }
                             downloadUrl(url, this.post);
