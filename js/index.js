@@ -14,6 +14,7 @@ var includeImages;
 var includeGifs;
 var includeVideos;
 var includeOthers;
+var includeAsLink;
 var includeNsfw;
 
 var checkFinishedInterval;
@@ -114,6 +115,7 @@ $("#downloadButton").click(function() {
         includeGifs = $("#includeGifsInput").parent().checkbox("is checked");
         includeVideos = $("#includeVideosInput").parent().checkbox("is checked");
         includeOthers = $("#includeOthersInput").parent().checkbox("is checked");
+        includeAsLink = $("#includeAsLinkInput").parent().checkbox("is checked");
         includeNsfw = $("#includeNsfwInput").parent().checkbox("is checked");
 
         if (userDownload) {
@@ -383,12 +385,24 @@ function downloadUrl(url, post) {
         function(data) {
             var fileName = getFileNameForPost(url, post);
             var extension = getFileExtension(url);
-            addFileToZip(fileName, extension, data, post.created_utc);
+            addFileToZip(fileName, extension, data, post.created_utc, true);
             downloadedCount++;
             updateUI();
         },
         function() {
-            toDownloadCount--;
+            if (includeAsLink) {
+                /* Windows URL format */
+                var data = "[{000214A0-0000-0000-C000-000000000046}]\n" + 
+                           "Prop3=19,11\n" + 
+                           "[InternetShortcut]\n" +
+                           "IDList=\n" +
+                           "URL=" + url;
+                var fileName = getFileNameForPost(url, post);
+                addFileToZip(fileName, ".url", data, post.created_utc, false);
+                downloadedCount++;
+            } else {
+                toDownloadCount--;
+            }
         }
     );
 }
@@ -405,7 +419,7 @@ function getFileNameForPost(url, post) {
     }
 }
 
-function addFileToZip(fileName, extension, data, createdUtc) {
+function addFileToZip(fileName, extension, data, createdUtc, dataIsBase64) {
     /* post-id is the only file name guaranteed to be unique */
     if (nameFormat !== "post-id") {
         /* Make sure we don't overwrite a saved file */
@@ -418,7 +432,7 @@ function addFileToZip(fileName, extension, data, createdUtc) {
     }
 
     zip.file(fileName + extension, data, { 
-        base64: true,
+        base64: dataIsBase64,
         date: new Date(createdUtc * 1000)
     });
 }
