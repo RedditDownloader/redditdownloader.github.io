@@ -13,6 +13,7 @@ var restrictByScoreValue;
 var includeImages;
 var includeGifs;
 var includeVideos;
+var includeOthers;
 var includeNsfw;
 
 var checkFinishedInterval;
@@ -27,11 +28,12 @@ $(document).ready(function() {
     $(".ui.checkbox").checkbox();
     $("select.dropdown").dropdown();
 
-    /* Make sure one or both of include images and include animated images are checked */
+    /* Make sure one or more of include images, animated images, videos or others are checked */
     $.fn.form.settings.rules.includeAny = function(value) {
         return $("#includeImagesInput").parent().checkbox("is checked")
             || $("#includeGifsInput").parent().checkbox("is checked")
-            || $("#includeVideosInput").parent().checkbox("is checked");
+            || $("#includeVideosInput").parent().checkbox("is checked")
+            || $("#includeOthersInput").parent().checkbox("is checked");
     };
 
     $(".ui.form")
@@ -42,10 +44,11 @@ $(document).ready(function() {
                 restrictByScoreValueInput : "integer[0..]",
                 includeImagesInput : "includeAny",
                 includeGifsInput : "includeAny",
-                includeVideosInput : "includeAny"
+                includeVideosInput : "includeAny",
+                includeOthersInput : "includeAny"
             }
         })
-        .on("change", "#includeImagesInput,#includeGifsInput,#includeVideosInput", function(e) {
+        .on("change", "#includeImagesInput,#includeGifsInput,#includeVideosInput,#includeOthersInput", function(e) {
             /* 
                 Removes the red text from include images/include 
                 animated images when one of them have been pressed.
@@ -110,6 +113,7 @@ $("#downloadButton").click(function() {
         includeImages = $("#includeImagesInput").parent().checkbox("is checked");
         includeGifs = $("#includeGifsInput").parent().checkbox("is checked");
         includeVideos = $("#includeVideosInput").parent().checkbox("is checked");
+        includeOthers = $("#includeOthersInput").parent().checkbox("is checked");
         includeNsfw = $("#includeNsfwInput").parent().checkbox("is checked");
 
         if (userDownload) {
@@ -331,6 +335,16 @@ function download(anchor) {
                             toDownloadCount--;
                         }
                     });
+                } else if (includeOthers) {
+                    /* Handle downloading direct files with non-image/video extensions */
+                    try {
+                        getFileExtension(url);
+                    } catch (error) {
+                        console.log("Info: '" + url + "' was not a direct URL, skipping download..");
+                        continue;
+                    }
+                    toDownloadCount++;
+                    downloadUrl(url, post);
                 }
             }
 
