@@ -58,11 +58,6 @@
                 </div>
             </div>
 
-            <div class="field">
-                <label for="searchFilterInput">Search Filter</label>
-                <input id="searchFilterInput" type="text">
-            </div>
-
             <div class="two fields">
                 <div class="field">
                     <label for="nameFormatInput">Name Downloads By</label>
@@ -76,6 +71,56 @@
                     <label for="imageAmountInput">Download Amount</label>
                     <input id="imageAmountInput" type="number" step="5" min="5" value="20">
                 </div>
+            </div>
+
+            <h3 class="ui header">File types</h3>
+
+            <div class="ui segment">
+                <div class="field">
+                    <div class="ui toggle checkbox">
+                        <input class="hidden" id="includeImagesInput" type="checkbox" checked>
+                        <label>Include images (jpg/jpeg/png/bmp/svg/webp/raw/tiff/ico/heif)</label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="two fields">
+                <div class="field">
+                    <div class="ui segment">
+                        <div class="field">
+                            <div class="ui toggle checkbox">
+                                <input class="hidden" id="includeGifsInput" type="checkbox">
+                                <label>Include animated images (gif/gifv)</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="field">
+                    <div class="ui segment">
+                        <div class="field">
+                            <div class="ui toggle checkbox">
+                                <input class="hidden" id="includeVideosInput" type="checkbox">
+                                <label>Include videos (no audio)</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="ui segment">
+                <div class="field">
+                    <div class="ui toggle checkbox">
+                        <input class="hidden" id="includeOthersInput" type="checkbox">
+                        <label>Include other file types (zip/txt/..)</label>
+                    </div>
+                </div>
+            </div>
+
+            <h3 class="ui header">Filters</h3>
+
+            <div class="field">
+                <label for="searchFilterInput">Search Text</label>
+                <input id="searchFilterInput" type="text">
             </div>
 
             <div class="ui segment">
@@ -98,47 +143,13 @@
                 </div>
             </div>
 
-            <div class="ui segment">
-                <div class="field">
-                    <div class="ui toggle checkbox">
-                        <input class="hidden" id="includeImagesInput" type="checkbox" checked>
-                        <label>Include images (jpg/jpeg/png/bmp/svg/webp/raw/tiff/ico/heif)</label>
-                    </div>
-                </div>
-            </div>
-
-            <div class="ui segment">
-                <div class="field">
-                    <div class="ui toggle checkbox">
-                        <input class="hidden" id="includeGifsInput" type="checkbox">
-                        <label>Include animated images (gif/gifv)</label>
-                    </div>
-                </div>
-            </div>
-
-            <div class="ui segment">
-                <div class="field">
-                    <div class="ui toggle checkbox">
-                        <input class="hidden" id="includeVideosInput" type="checkbox">
-                        <label>Include videos (no audio)</label>
-                    </div>
-                </div>
-            </div>
-
-            <div class="ui segment">
-                <div class="field">
-                    <div class="ui toggle checkbox">
-                        <input class="hidden" id="includeOthersInput" type="checkbox">
-                        <label>Include other file types (zip/txt/..)</label>
-                    </div>
-                </div>
-            </div>
+            <h3 class="ui header">Misc</h3>
 
             <div class="ui segment">
                 <div class="field">
                     <div class="ui toggle checkbox">
                         <input class="hidden" id="includeAsLinkInput" type="checkbox" checked>
-                        <label>Include item as link if too large (2MB/item)</label>
+                        <label>Include item as link if too large (2MiB/item)</label>
                     </div>
                 </div>
             </div>
