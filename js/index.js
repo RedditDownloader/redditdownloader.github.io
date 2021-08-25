@@ -154,6 +154,10 @@ $("#downloadButton").click(function() {
     }
 });
 
+$("#cancelDownloadButton").click(function() {
+    doneDownloading();
+});
+
 function updateUI() {
     $("#downloadedCountText").text(downloadedCount);
     $("#toDownloadCountText").text(toDownloadCount);
