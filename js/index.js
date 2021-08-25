@@ -12,6 +12,7 @@ var restrictByScoreType;
 var restrictByScoreValue;
 var includeImages;
 var includeGifs;
+var includeVideos;
 var includeNsfw;
 
 var checkFinishedInterval;
@@ -29,7 +30,8 @@ $(document).ready(function() {
     /* Make sure one or both of include images and include animated images are checked */
     $.fn.form.settings.rules.includeAny = function(value) {
         return $("#includeImagesInput").parent().checkbox("is checked")
-            || $("#includeGifsInput").parent().checkbox("is checked");
+            || $("#includeGifsInput").parent().checkbox("is checked")
+            || $("#includeVideosInput").parent().checkbox("is checked");
     };
 
     $(".ui.form")
@@ -39,10 +41,11 @@ $(document).ready(function() {
                 imageAmountInput : "integer[0..]",
                 restrictByScoreValueInput : "integer[0..]",
                 includeImagesInput : "includeAny",
-                includeGifsInput : "includeAny"
+                includeGifsInput : "includeAny",
+                includeVideosInput : "includeAny"
             }
         })
-        .on("change", "#includeImagesInput,#includeGifsInput", function(e) {
+        .on("change", "#includeImagesInput,#includeGifsInput,#includeVideosInput", function(e) {
             /* 
                 Removes the red text from include images/include 
                 animated images when one of them have been pressed.
@@ -106,6 +109,7 @@ $("#downloadButton").click(function() {
         restrictByScoreValue = $("#restrictByScoreValueInput").val();
         includeImages = $("#includeImagesInput").parent().checkbox("is checked");
         includeGifs = $("#includeGifsInput").parent().checkbox("is checked");
+        includeVideos = $("#includeVideosInput").parent().checkbox("is checked");
         includeNsfw = $("#includeNsfwInput").parent().checkbox("is checked");
 
         if (userDownload) {
@@ -227,6 +231,10 @@ function download(anchor) {
                     continue;
                 }
 
+                if (!includeVideos && post.is_video) {
+                    continue;
+                }
+
                 /* Continue if direct url is an image and user doesn't want to download images */
                 if (!includeImages && (url.indexOf(".jpg") !== -1 || url.indexOf(".png") !== -1)) {
                     continue;
@@ -236,6 +244,19 @@ function download(anchor) {
                     /* Handle item with extension (direct link) */
                     toDownloadCount++;
                     downloadUrl(url, post);
+                } else if (url.indexOf("v.redd.it/") !== -1) {
+                    /* Handle Reddit video link */
+                    if (!post.media || !post.media.reddit_video || !post.media.reddit_video.fallback_url) {
+                        console.log("Error: v.redd.it post (" + url + ") did not have an associated media object");
+                        continue;
+                    }
+
+                    var videoUrl = post.media.reddit_video.fallback_url;
+                    // TODO: Add the audio track to the video
+                    //var audioUrl = videoUrl.replace(/(\d)+\.mp4/, 'audio.mp4');
+
+                    toDownloadCount++;
+                    downloadUrl(videoUrl, post);
                 } else if (url.startsWith("http://imgur.com/a/") || url.startsWith("https://imgur.com/a/")) {
                     /* Handle downloading an album */
                     var imageName = url.substring(url.lastIndexOf("/") + 1);
@@ -344,36 +365,11 @@ function download(anchor) {
 }
 
 function downloadUrl(url, post) {
-    downloadImageAsBase64(url, post, 
-        function(url, post, data) {
-            var fileName;
+    downloadFileAsBase64(url, 
+        function(data) {
+            var fileName = getFileNameForPost(url, post);
             var extension = getFileExtension(url);
-
-            if (nameFormat === "file-name") {
-                fileName = getFileName(url);
-            } else if (nameFormat === "post-id") {
-                fileName = post.name;
-            } else {
-                /* default: post-name */
-                var regex = /[^\/]+(?=\/$|$)/g;
-                fileName = regex.exec(post.permalink)[0];
-            }
-
-            /* post-id is the only file name guaranteed to be unique */
-            if (nameFormat !== "post-id") {
-                /* Make sure we don't overwrite a saved file */
-                var oldFileName = fileName;
-                var counter = 0;
-                while (zip.file(oldFileName + extension)) {
-                    oldFileName = fileName + "_" + counter++;
-                }
-                fileName = oldFileName;
-            }
-
-            zip.file(fileName + extension, data, { 
-                base64: true,
-                date: new Date(post.created_utc * 1000)
-            });
+            addFileToZip(fileName, extension, data, post.created_utc);
             downloadedCount++;
             updateUI();
         },
@@ -381,6 +377,36 @@ function downloadUrl(url, post) {
             toDownloadCount--;
         }
     );
+}
+
+function getFileNameForPost(url, post) {
+    if (nameFormat === "file-name") {
+        return getFileName(url);
+    } else if (nameFormat === "post-id") {
+        return post.name;
+    } else {
+        /* default: post-name */
+        var regex = /[^\/]+(?=\/$|$)/g;
+        return regex.exec(post.permalink)[0];
+    }
+}
+
+function addFileToZip(fileName, extension, data, createdUtc) {
+    /* post-id is the only file name guaranteed to be unique */
+    if (nameFormat !== "post-id") {
+        /* Make sure we don't overwrite a saved file */
+        var oldFileName = fileName;
+        var counter = 0;
+        while (zip.file(oldFileName + extension)) {
+            oldFileName = fileName + "_" + counter++;
+        }
+        fileName = oldFileName;
+    }
+
+    zip.file(fileName + extension, data, { 
+        base64: true,
+        date: new Date(createdUtc * 1000)
+    });
 }
 
 function isUrlDirect(url) {
@@ -432,14 +458,14 @@ function doneDownloading() {
     }
 }
 
-function downloadImageAsBase64(url, post, callback, errored) {
+function downloadFileAsBase64(url, callback, errored) {
     var xhr = new XMLHttpRequest();
     xhr.onload = function() {
         downloadRequests.delete(this);
 
         var reader = new FileReader();
         reader.onloadend = function() {
-            callback(url, post, reader.result.split(",").pop());
+            callback(reader.result.split(",").pop());
         }
         reader.readAsDataURL(xhr.response);
     };

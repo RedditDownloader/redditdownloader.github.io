@@ -21,7 +21,7 @@
 <body>
     <div class="container">
         <h2 class="ui dividing header">Reddit Downloader</h2>
-        <h5>This webpage downloads images and gifs from <a href="https://www.reddit.com/reddits">subreddits</a> and users, zips them up and hands them to you.</h5>
+        <h5>This webpage downloads images and videos from <a href="https://www.reddit.com/reddits">subreddits</a> and users, zips them up and hands them to you.</h5>
         <p>The lookup and downloading code is on the client-side, which means that this website does <b>not</b> know anything about what you're downloading. Feel free to check the code out over at <a href="https://github.com/RedditDownloader/redditdownloader.github.io">GitHub</a>.</p>
 
         <div class="ui form">
@@ -109,7 +109,16 @@
                 <div class="field">
                     <div class="ui toggle checkbox">
                         <input class="hidden" id="includeGifsInput" type="checkbox">
-                        <label>Include animated images/videos (gif/gifv)</label>
+                        <label>Include animated images (gif/gifv)</label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="ui segment">
+                <div class="field">
+                    <div class="ui toggle checkbox">
+                        <input class="hidden" id="includeVideosInput" type="checkbox">
+                        <label>Include videos (no audio)</label>
                     </div>
                 </div>
             </div>
@@ -137,8 +146,8 @@
         </div>
 
         <div class="ui message" id="downloadingInfoBox">
-            <div class="header">Downloading images</div>
-            <p>You've downloaded <b id="downloadedCountText"></b> of <b id="toDownloadCountText"></b> images so far.</p>
+            <div class="header">Downloading</div>
+            <p>You've downloaded <b id="downloadedCountText"></b> of <b id="toDownloadCountText"></b> items so far.</p>
         </div>
     </div>
 
