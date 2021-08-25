@@ -238,7 +238,7 @@ function download(anchor) {
                 }
 
                 /* Continue if post links to a video and user doesn't want to download videos */
-                if (!includeVideos && post.is_video) {
+                if (!includeVideos && (post.is_video || isDirectVideoUrl(url))) {
                     continue;
                 }
 
@@ -252,7 +252,7 @@ function download(anchor) {
                     continue;
                 }
 
-                if (isDirectImageUrl(url) || isDirectGifUrl(url)) {
+                if (isDirectImageUrl(url) || isDirectVideoUrl(url) || isDirectGifUrl(url)) {
                     /* Handle item with extension (direct link) */
                     toDownloadCount++;
                     downloadUrl(url, post);
@@ -450,6 +450,11 @@ function isDirectImageUrl(url) {
         || url.indexOf(".svg") !== -1 || url.indexOf(".webp") !== -1
         || url.indexOf(".raw") !== -1 || url.indexOf(".tiff") !== -1
         || url.indexOf(".ico") !== -1 || url.indexOf(".heif") !== -1;
+}
+
+function isDirectVideoUrl(url) {
+    url = url.toLowerCase();
+    return url.indexOf(".mp4") !== -1;
 }
 
 function isDirectGifUrl(url) {
