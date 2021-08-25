@@ -237,12 +237,18 @@ function download(anchor) {
                     continue;
                 }
 
+                /* Continue if post links to a video and user doesn't want to download videos */
                 if (!includeVideos && post.is_video) {
                     continue;
                 }
 
                 /* Continue if direct url is an image and user doesn't want to download images */
                 if (!includeImages && isDirectImageUrl(url)) {
+                    continue;
+                }
+
+                /* Continue if link links to Imgur and we're not including anything that you can get from Imgur */
+                if (!includeGifs && !includeVideos && !includeImages && (url.startsWith("http://imgur.com/") || url.startsWith("https://imgur.com/"))) {
                     continue;
                 }
 
@@ -284,14 +290,14 @@ function download(anchor) {
                                     break;
                                 }
 
-                                if (!includeGifs && result.data.animated 
-                                    || !includeImages && !result.data.animated) {
+                                var url = result.data.link;
+                                if (!includeGifs && isDirectGifUrl(url)
+                                    || !includeVideos && isDirectVideoUrl(url)
+                                    || !includeImages && isDirectImageUrl(url)) {
                                     continue;
                                 }
 
                                 toDownloadCount++;
-
-                                var url = images[i].link;
                                 downloadUrl(url, this.post);
                             }
                         },
@@ -320,12 +326,12 @@ function download(anchor) {
                         },
                         post: post, // pass to success function
                         success: function(result, status, xhr) {
-                            if (!includeGifs && result.data.animated 
-                                || !includeImages && !result.data.animated) {
+                            var url = result.data.link;
+                            if (!includeGifs && isDirectGifUrl(url)
+                                || !includeVideos && isDirectVideoUrl(url)
+                                || !includeImages && isDirectImageUrl(url)) {
                                 return;
                             }
-
-                            var url = result.data.link;
                             downloadUrl(url, this.post);
                         },
                         error: function(error) {
