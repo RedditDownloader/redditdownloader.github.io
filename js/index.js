@@ -227,7 +227,7 @@ function download(anchor) {
                 }
 
                 /* Continue if direct url is a gif and user doesn't want to download gifs */
-                if (!includeGifs && (url.indexOf(".gif") !== -1 || url.indexOf(".gifv") !== -1)) {
+                if (!includeGifs && isDirectGifUrl(url)) {
                     continue;
                 }
 
@@ -236,11 +236,11 @@ function download(anchor) {
                 }
 
                 /* Continue if direct url is an image and user doesn't want to download images */
-                if (!includeImages && (url.indexOf(".jpg") !== -1 || url.indexOf(".png") !== -1)) {
+                if (!includeImages && isDirectImageUrl(url)) {
                     continue;
                 }
 
-                if (isUrlDirect(url)) {
+                if (isDirectImageUrl(url) || isDirectGifUrl(url)) {
                     /* Handle item with extension (direct link) */
                     toDownloadCount++;
                     downloadUrl(url, post);
@@ -409,9 +409,18 @@ function addFileToZip(fileName, extension, data, createdUtc) {
     });
 }
 
-function isUrlDirect(url) {
-    return url.indexOf(".jpg") !== -1 || url.indexOf(".png") !== -1 
-        || url.indexOf(".gif") !== -1 || url.indexOf(".gifv") !== -1;
+function isDirectImageUrl(url) {
+    url = url.toLowerCase();
+    return url.indexOf(".jpg") !== -1 || url.indexOf(".jpeg") !== -1
+        || url.indexOf(".png") !== -1 || url.indexOf(".bmp") !== -1
+        || url.indexOf(".svg") !== -1 || url.indexOf(".webp") !== -1
+        || url.indexOf(".raw") !== -1 || url.indexOf(".tiff") !== -1
+        || url.indexOf(".ico") !== -1 || url.indexOf(".heif") !== -1;
+}
+
+function isDirectGifUrl(url) {
+    url = url.toLowerCase();
+    return url.indexOf(".gif") !== -1 || url.indexOf(".gifv") !== -1;
 }
 
 function getFileNameWithExtension(url) {
