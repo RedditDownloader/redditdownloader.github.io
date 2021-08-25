@@ -72,7 +72,7 @@ $(document).ready(function() {
         onChange: function() {
             if (this.checked) {
                 $("label[for=targetNameInput]").text("User Name");
-                $("#targetNameInput").attr("placeholder", "uniquepassive");
+                $("#targetNameInput").attr("placeholder", "username");
                 $("#sectionInput").parent().addClass("disabled");
                 $("#searchFilterInput").prop("disabled", true);
             } else {
