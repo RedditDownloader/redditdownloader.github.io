@@ -1,11 +1,15 @@
 var CORS_PROXY_URL = "https://cors.bridged.cc/";
 var CHECK_DOWNLOADS_FINISHED_EVERY_MS = 100;
+var MAX_POSTS_PER_REQUEST = 100;
+var MIN_POSTS_PER_REQUEST = 5;
+var RETRY_POSTS_FACTOR = 0.7;
 
 /* User options */
 var userDownload;
 var targetName;
 var section;
 var maxImageCount;
+var maxPostsPerRequest;
 var nameFormat;
 var restrictByScore;
 var restrictByScoreType;
@@ -150,6 +154,7 @@ $("#downloadButton").click(function() {
 
         /* Find images to scrape and start downloading */
         maxImageCount = $("#imageAmountInput").val();
+        maxPostsPerRequest = MAX_POSTS_PER_REQUEST;
         download();
     }
 });
@@ -164,12 +169,12 @@ function updateUI() {
 }
 
 function download(anchor) {
-    /* Max 100 posts per request */
-    var maxImageCountNow = Math.min(maxImageCount - toDownloadCount, 100);
+    /* Max MAX_POSTS_PER_REQUEST posts per request */
+    var maxImageCountNow = Math.min(maxImageCount - toDownloadCount, maxPostsPerRequest);
 
     /* Prevent extreme amounts of requests in the case that maxImageCountNow is for example 1 */
-    if (maxImageCountNow < 50) {
-        maxImageCountNow = 50;
+    if (maxImageCountNow < MIN_POSTS_PER_REQUEST) {
+        maxImageCountNow = MIN_POSTS_PER_REQUEST;
     }
 
     var url;
@@ -387,11 +392,21 @@ function download(anchor) {
             if (error.status === 404 || error.status === 403) {
                 /* If HTTP status is 404 or 403, the subreddit probably doesn't exist */
                 $("#unknownNameErrorBox").show();
+                doneDownloading();
+            } else if (error.status == 0) {
+                /* The response body is likely too large for the CORS proxy, retry with fewer posts */
+                maxPostsPerRequest = Math.ceil(maxPostsPerRequest * RETRY_POSTS_FACTOR);
+                if (maxPostsPerRequest >= MIN_POSTS_PER_REQUEST) {
+                    download(anchor);
+                } else {
+                    alert("Retried retrieval of Reddit posts too many times, are you connected to the Internet?");
+                    doneDownloading();
+                }
             } else if (error.status !== 200) {
                 /* Notify user when a non-handled status code is received */
-                alert("Unknown status code " + error.status + " received from lookup request.\nPlease contact the developer.");
+                alert("Unknown error " + JSON.stringify(error) + " received from lookup request.\nPlease contact the developer.");
+                doneDownloading();
             }
-            doneDownloading();
         }
     });
 }
