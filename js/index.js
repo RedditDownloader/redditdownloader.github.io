@@ -169,6 +169,10 @@ function updateUI() {
 }
 
 function download(anchor) {
+    if (!isDownloading()) {
+        return;
+    }
+
     /* Max MAX_POSTS_PER_REQUEST posts per request */
     var maxImageCountNow = Math.min(maxImageCount - toDownloadCount, maxPostsPerRequest);
 
@@ -504,9 +508,13 @@ function getFileExtension(url) {
     return fileNameWithExt.substring(fileNameWithExt.lastIndexOf("."));
 }
 
+function isDownloading() {
+    return $(".ui.form").hasClass("loading");
+}
+
 function doneDownloading() {
     // only run the "done" code if we're downloading
-    if (!$(".ui.form").hasClass("loading")) {
+    if (!isDownloading()) {
         return;
     }
 
