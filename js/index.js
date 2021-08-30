@@ -535,13 +535,21 @@ function doneDownloading() {
     clearInterval(checkFinishedInterval);
 
     if (downloadedCount > 0) {
+        $("#zippingProgressText").text("0");
+        $("#zippingFileNameText").text("N/A");
         $("#processingInfoBox").show();
+
         zip.generateAsync({ 
             type: "blob",
             comment: "Downloaded using https://redditdownloader.github.io",
             compression: "DEFLATE",
             compressionOptions: {
                 level: 9
+            }
+        }, function updateCallback(metadata) {
+            $("#zippingProgressText").text(Math.floor(metadata.percent));
+            if (metadata.currentFile) {
+                $("#zippingFileNameText").text(metadata.currentFile);
             }
         }).then(function(content) {
             saveAs(content, targetName + "_" + section + ".zip");
