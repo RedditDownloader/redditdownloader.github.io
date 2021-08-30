@@ -22,6 +22,6 @@ html, body {
   background-color: #CACBCD !important;
 }
 
-#unknownNameErrorBox, #noImagesFoundWarningBox, #downloadingInfoBox {
+#unknownNameErrorBox, #noImagesFoundWarningBox, #downloadingInfoBox, #processingInfoBox {
     display: none;
 }

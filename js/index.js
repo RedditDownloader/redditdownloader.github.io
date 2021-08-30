@@ -95,6 +95,7 @@ $(document).ready(function() {
 $("#downloadButton").click(function() {
     $("#unknownNameErrorBox").hide();
     $("#noImagesFoundWarningBox").hide();
+    $("#processingInfoBox").hide();
 
     if ($(".ui.form").form("validate form")) {
         /* Reset states */
@@ -534,6 +535,7 @@ function doneDownloading() {
     clearInterval(checkFinishedInterval);
 
     if (downloadedCount > 0) {
+        $("#processingInfoBox").show();
         zip.generateAsync({ 
             type: "blob",
             comment: "Downloaded using https://redditdownloader.github.io",
@@ -543,6 +545,7 @@ function doneDownloading() {
             }
         }).then(function(content) {
             saveAs(content, targetName + "_" + section + ".zip");
+            $("#processingInfoBox").hide();
         });
     } else {
         /* Only show the "no images found" warning if the subreddit exists */
