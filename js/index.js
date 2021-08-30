@@ -25,6 +25,7 @@ var checkFinishedInterval;
 var downloadRequests = new Set();
 var downloadedCount;
 var toDownloadCount;
+var downloadedBytes;
 var zip;
 
 $(document).ready(function() {
@@ -102,6 +103,7 @@ $("#downloadButton").click(function() {
         downloadRequests.clear();
         downloadedCount = 0;
         toDownloadCount = 0;
+        downloadedBytes = 0;
         zip = new JSZip();
         updateUI();
 
@@ -166,6 +168,7 @@ $("#cancelDownloadButton").click(function() {
 function updateUI() {
     $("#downloadedCountText").text(downloadedCount);
     $("#toDownloadCountText").text(toDownloadCount);
+    $("#downloadedSizeText").text(Math.ceil(downloadedBytes / 1048576.0));
 }
 
 function download(anchor) {
@@ -435,6 +438,7 @@ function downloadUrl(url, post) {
                 var fileName = getFileNameForPost(url, post);
                 addFileToZip(fileName, ".url", data, post, false);
                 downloadedCount++;
+                updateUI();
             } else {
                 toDownloadCount--;
             }
@@ -454,7 +458,7 @@ function getFileNameForPost(url, post) {
     }
 }
 
-function addFileToZip(fileName, extension, data, post, dataIsBase64) {
+function addFileToZip(fileName, extension, data, post, dataIsBinary) {
     /* post-id is the only file name guaranteed to be unique */
     if (nameFormat !== "post-id") {
         /* Make sure we don't overwrite a saved file */
@@ -467,10 +471,12 @@ function addFileToZip(fileName, extension, data, post, dataIsBase64) {
     }
 
     zip.file(fileName + extension, data, { 
-        base64: dataIsBase64,
+        binary: dataIsBinary,
         date: new Date(post.createdUtc * 1000),
         comment: "https://reddit.com" + post.permalink
     });
+
+    downloadedBytes += dataIsBinary ? data.size : data.length;
 }
 
 function isDirectImageUrl(url) {
@@ -551,11 +557,8 @@ function downloadFileAsBase64(url, callback, errored) {
     xhr.onload = function() {
         downloadRequests.delete(this);
 
-        var reader = new FileReader();
-        reader.onloadend = function() {
-            callback(reader.result.split(",").pop());
-        }
-        reader.readAsDataURL(xhr.response);
+        var blob = xhr.response;
+        callback(blob);
     };
     xhr.onerror = function() {
         errored();
