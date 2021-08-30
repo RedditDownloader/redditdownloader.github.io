@@ -416,7 +416,7 @@ function downloadUrl(url, post) {
         function(data) {
             var fileName = getFileNameForPost(url, post);
             var extension = getFileExtension(url);
-            addFileToZip(fileName, extension, data, post.created_utc, true);
+            addFileToZip(fileName, extension, data, post, true);
             downloadedCount++;
             updateUI();
         },
@@ -429,7 +429,7 @@ function downloadUrl(url, post) {
                            "IDList=\n" +
                            "URL=" + url;
                 var fileName = getFileNameForPost(url, post);
-                addFileToZip(fileName, ".url", data, post.created_utc, false);
+                addFileToZip(fileName, ".url", data, post, false);
                 downloadedCount++;
             } else {
                 toDownloadCount--;
@@ -450,7 +450,7 @@ function getFileNameForPost(url, post) {
     }
 }
 
-function addFileToZip(fileName, extension, data, createdUtc, dataIsBase64) {
+function addFileToZip(fileName, extension, data, post, dataIsBase64) {
     /* post-id is the only file name guaranteed to be unique */
     if (nameFormat !== "post-id") {
         /* Make sure we don't overwrite a saved file */
@@ -464,7 +464,8 @@ function addFileToZip(fileName, extension, data, createdUtc, dataIsBase64) {
 
     zip.file(fileName + extension, data, { 
         base64: dataIsBase64,
-        date: new Date(createdUtc * 1000)
+        date: new Date(post.createdUtc * 1000),
+        comment: "https://reddit.com" + post.permalink
     });
 }
 
@@ -519,10 +520,16 @@ function doneDownloading() {
     clearInterval(checkFinishedInterval);
 
     if (downloadedCount > 0) {
-        zip.generateAsync({ type:"blob" })
-            .then(function(content) {
-                saveAs(content, targetName + "_" + section + ".zip");
-            });
+        zip.generateAsync({ 
+            type: "blob",
+            comment: "Downloaded using https://redditdownloader.github.io",
+            compression: "DEFLATE",
+            compressionOptions: {
+                level: 9
+            }
+        }).then(function(content) {
+            saveAs(content, targetName + "_" + section + ".zip");
+        });
     } else {
         /* Only show the "no images found" warning if the subreddit exists */
         if (!$("#unknownNameErrorBox").is(":visible")) {
