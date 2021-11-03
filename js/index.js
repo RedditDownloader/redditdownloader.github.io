@@ -1,4 +1,4 @@
-var CORS_PROXY_URL = "https://cors.bridged.cc/";
+var CORS_PROXY_URL = "https://api.allorigins.win/raw?url=";
 var CHECK_DOWNLOADS_FINISHED_EVERY_MS = 100;
 var MAX_POSTS_PER_REQUEST = 100;
 var MIN_POSTS_PER_REQUEST = 5;
@@ -188,19 +188,16 @@ function download(anchor) {
     var url;
 
     if (userDownload) {
-        url = CORS_PROXY_URL
-            + "https://www.reddit.com/user/" + targetName
+        url = "https://www.reddit.com/user/" + targetName
             + ".json?limit=" + maxImageCountNow
             + (anchor !== undefined ? "&after=" + anchor : "");
     } else if (searchFilter) {
-        url = CORS_PROXY_URL
-            + "https://www.reddit.com/r/" + targetName
+        url = "https://www.reddit.com/r/" + targetName
             + "/search.json?q=" + searchFilter + "&restrict_sr=on&limit=" + maxImageCountNow
             + (includeNsfw ? "&include_over_18=on" : "")
             + (anchor !== undefined ? "&after=" + anchor : "");
     } else {
-        url = CORS_PROXY_URL
-            + "https://www.reddit.com/r/" + targetName
+        url = "https://www.reddit.com/r/" + targetName
             + "/" + section + ".json?limit=" + maxImageCountNow
             + (anchor !== undefined ? "&after=" + anchor : "");
     }
@@ -209,13 +206,13 @@ function download(anchor) {
     }
 
     $.ajax({
-        url: url,
+        url: CORS_PROXY_URL + encodeURIComponent(url),
         type: "GET",
         dataType: "json",
         contentType: "application/json; charset=utf-8",
         success: function(result, status, xhr) {
             /* Make sure we haven't been redirected to the search page = subreddit doesn't exist */
-            if (!userDownload && !searchFilter && xhr.getResponseHeader("X-Final-Url").indexOf(section + ".json") === -1) {
+            if (!userDownload && !searchFilter && result.data.dist === 0) {
                 $("#unknownNameErrorBox").show();
                 doneDownloading();
                 return;
@@ -574,7 +571,7 @@ function downloadFileAsBase64(url, callback, errored) {
     xhr.onerror = function() {
         errored();
     };
-    xhr.open("GET", CORS_PROXY_URL + url);
+    xhr.open("GET", CORS_PROXY_URL + encodeURIComponent(url));
     xhr.responseType = "blob";
     xhr.send();
 
