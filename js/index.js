@@ -522,7 +522,6 @@ function doneDownloading() {
         return;
     }
 
-    $(".ui.form").removeClass("loading");
     $("#downloadingInfoBox").hide();
 
     for (var xhr in downloadRequests) {
@@ -551,12 +550,14 @@ function doneDownloading() {
         }).then(function(content) {
             saveAs(content, targetName + "_" + section + ".zip");
             $("#processingInfoBox").hide();
+            $(".ui.form").removeClass("loading");
         });
     } else {
         /* Only show the "no images found" warning if the subreddit exists */
         if (!$("#unknownNameErrorBox").is(":visible")) {
             $("#noImagesFoundWarningBox").show();
         }
+        $(".ui.form").removeClass("loading");
     }
 }
 
