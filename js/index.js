@@ -324,7 +324,6 @@ function download(anchor) {
                                 alert("Accessing the Imgur API failed!\nPlease contact the developer.\nResponse code: " 
                                     + error.status + "\nResponse: " + error.responseText);
                             }
-                            toDownloadCount--;
                         }
                     });
                 } else if (url.startsWith("http://imgur.com/") || url.startsWith("https://imgur.com/")) {
