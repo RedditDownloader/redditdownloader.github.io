@@ -297,23 +297,26 @@ function download(anchor) {
                         },
                         post: post, // pass to success function
                         success: function(result, status, xhr) {
+                            if (!includeNsfw && result.data.nsfw) {
+                                return;
+                            }
+
                             var images = result.data.images;
 
                             for (var i = 0; i < images.length; i++) {
                                 if (toDownloadCount >= maxImageCount) {
                                     break;
                                 }
-
-                                var url = result.data.link;
+                                var image = images[i];
+                                if (!includeNsfw && image.nsfw) {
+                                    continue;
+                                }
+                                var url = image.link;
                                 if (!includeGifs && isDirectGifUrl(url)
                                     || !includeVideos && isDirectVideoUrl(url)
                                     || !includeImages && isDirectImageUrl(url)) {
                                     continue;
                                 }
-                                if (!includeNsfw && result.data.nsfw) {
-                                    continue;
-                                }
-
                                 toDownloadCount++;
                                 downloadUrl(url, this.post);
                             }
@@ -342,13 +345,13 @@ function download(anchor) {
                         },
                         post: post, // pass to success function
                         success: function(result, status, xhr) {
+                            if (!includeNsfw && result.data.nsfw) {
+                                return;
+                            }
                             var url = result.data.link;
                             if (!includeGifs && isDirectGifUrl(url)
                                 || !includeVideos && isDirectVideoUrl(url)
                                 || !includeImages && isDirectImageUrl(url)) {
-                                return;
-                            }
-                            if (!includeNsfw && result.data.nsfw) {
                                 return;
                             }
                             downloadUrl(url, this.post);
