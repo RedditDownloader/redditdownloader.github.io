@@ -212,7 +212,7 @@ function download(anchor) {
         contentType: "application/json; charset=utf-8",
         success: function(result, status, xhr) {
             /* Make sure we haven't been redirected to the search page = subreddit doesn't exist */
-            if (!userDownload && !searchFilter && result.data.dist === 0) {
+            if (!userDownload && !searchFilter && result.data.dist === 0 && typeof anchor === "undefined") {
                 $("#unknownNameErrorBox").show();
                 doneDownloading();
                 return;
