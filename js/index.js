@@ -106,7 +106,6 @@ $("#downloadButton").click(function() {
         toDownloadCount = 0;
         downloadedBytes = 0;
         zip = new JSZip();
-        updateUI();
 
         /* Read user options */
         userDownload = $("#userDownloadInput").parent().checkbox("is checked");
@@ -158,6 +157,7 @@ $("#downloadButton").click(function() {
         /* Find images to scrape and start downloading */
         maxImageCount = $("#imageAmountInput").val();
         maxPostsPerRequest = MAX_POSTS_PER_REQUEST;
+        updateUI();
         download();
     }
 });
@@ -168,7 +168,7 @@ $("#cancelDownloadButton").click(function() {
 
 function updateUI() {
     $("#downloadedCountText").text(downloadedCount);
-    $("#toDownloadCountText").text(toDownloadCount);
+    $("#toDownloadCountText").text(Math.min(toDownloadCount, maxImageCount));
     $("#downloadedSizeText").text(Math.ceil(downloadedBytes / 1048576.0));
 }
 
@@ -304,9 +304,6 @@ function download(anchor) {
                             var images = result.data.images;
 
                             for (var i = 0; i < images.length; i++) {
-                                if (toDownloadCount >= maxImageCount) {
-                                    break;
-                                }
                                 var image = images[i];
                                 if (!includeNsfw && image.nsfw) {
                                     continue;
@@ -419,6 +416,10 @@ function download(anchor) {
 }
 
 function downloadUrl(url, post) {
+    if (downloadedCount >= maxImageCount) {
+        toDownloadCount--;
+        return;
+    }
     downloadFileAsBase64(url, 
         function(data) {
             var fileName = getFileNameForPost(url, post);
