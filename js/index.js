@@ -311,12 +311,15 @@ function download(anchor) {
                         post: post, // pass to success function
                         postIdx: postIdx, // pass to success function
                         success: function(result, status, xhr) {
-                            if (!includeNsfw && result.data.nsfw) {
+                            var data = result.data;
+                            if (!data) {
+                                console.log("Error: data missing in Imgur API response for '" + url + "'");
                                 return;
                             }
-
-                            var images = result.data.images;
-
+                            if (!includeNsfw && data.nsfw) {
+                                return;
+                            }
+                            var images = data.images;
                             for (var i = 0; i < images.length; i++) {
                                 var image = images[i];
                                 if (!includeNsfw && image.nsfw) {
@@ -357,11 +360,17 @@ function download(anchor) {
                         post: post, // pass to success function
                         postIdx: postIdx, // pass to success function
                         success: function(result, status, xhr) {
-                            if (!includeNsfw && result.data.nsfw) {
+                            var data = result.data;
+                            if (!data) {
+                                console.log("Error: data missing in Imgur API response for '" + url + "'");
                                 toDownloadCount--;
                                 return;
                             }
-                            var url = result.data.link;
+                            if (!includeNsfw && data.nsfw) {
+                                toDownloadCount--;
+                                return;
+                            }
+                            var url = data.link;
                             if (!includeGifs && isDirectGifUrl(url)
                                 || !includeVideos && isDirectVideoUrl(url)
                                 || !includeImages && isDirectImageUrl(url)) {
