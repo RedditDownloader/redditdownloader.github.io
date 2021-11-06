@@ -442,12 +442,15 @@ function download(anchor) {
             }
 
             if (children.length === 0 || toDownloadCount >= maxImageCount || result.data.after === null) {
+                console.log("Info: will start waiting for pending downloads to complete now");
+
                 var reasonWasMaxImageCount = toDownloadCount >= maxImageCount;
 
                 checkFinishedInterval = setInterval(function() {
                     if (reasonWasMaxImageCount && toDownloadCount < maxImageCount) {
                         // this happens if an image has failed to download
                         // and we need to try to download more images
+                        console.log("Warn: an item has failed downloading while waiting for pending downloads to complete, will start looking for more posts");
                         clearInterval(checkFinishedInterval);
                         download(result.data.after);
                     } else if (downloadedCount === toDownloadCount) {
@@ -483,9 +486,11 @@ function download(anchor) {
 
 function downloadUrl(url, post, postIdx) {
     if (downloadedCount >= maxImageCount) {
+        console.log("Info: was about to queue '" + url + "' for downloading, but the max image count was already reached, so it will be skipped");
         toDownloadCount--;
         return;
     }
+    console.log("Info: queueing '" + url + "' for download while downloadedCount = " + downloadedCount + " and toDownloadCount = " + toDownloadCount);
     downloadFileAsBase64(url, 
         function(data) {
             var fileName = getFileNameForPost(url, post, postIdx);
@@ -495,6 +500,7 @@ function downloadUrl(url, post, postIdx) {
             updateUI();
         },
         function() {
+            console.log("Warn: failed to download '" + url + "'" + (includeAsLink ? ", will save as link" : ""));
             if (includeAsLink) {
                 /* Windows URL format */
                 var data = "[{000214A0-0000-0000-C000-000000000046}]\n" + 
