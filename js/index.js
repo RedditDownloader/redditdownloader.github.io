@@ -39,38 +39,44 @@ var zip;
 $(document).ready(function() {
     setRandomNamePlaceholder();
 
+    setupSemanticUI();
+    setupFilters();
+    setupForm();
+    setupButtons();
+});
+
+function setupSemanticUI() {
     $(".ui.menu .item").tab();
     $(".ui.checkbox").checkbox();
     $("select.dropdown").dropdown();
-    $(".message .close").on("click", function() {
+    $(".message .close").click(function() {
         $(this).closest(".message").transition("fade");
     });
-    $(".ui.buttons .button").on("click", function() {
+    $(".ui.buttons .button").click(function() {
         $(this).addClass("active").siblings().removeClass("active");
-
-        var target = $(this).data("target");
-        var isUserTarget = target == targets.USER;
-        var isSubredditTarget = target == targets.SUBREDDIT;
-
-        var targetNameLabel = isUserTarget ? "User Name" : "Subreddit Name";
-        $("label[for=targetNameInput]").text(targetNameLabel);
-        var sectionInputField = $("#sectionInput").parents(".field").first();
-        sectionInputField.prop("hidden", isUserTarget);
-        if (isUserTarget) {
-            sectionInputField.parent().removeClass("two fields");
-        } else {
-            sectionInputField.parent().addClass("two fields");
-        }
-        $("#searchFilterInput").parent().prop("hidden", isUserTarget);
-
-        if (isSubredditTarget) {
-            setRandomNamePlaceholder();
-        }
-
-        $("#targetNameInput").focus();
-        $("#targetNameInput").select();
     });
+    // https://stackoverflow.com/a/30949767/4313694
+    $("button").on("mousedown", 
+        function(event) {
+            event.preventDefault();
+        }
+    );
+}
 
+function setupFilters() {
+    $("#restrictByScoreInput").parent().checkbox({
+        onChange: function() {
+            if (this.checked) {
+                $("#restrictByScoreTypeInput").parent().removeClass("disabled");
+            } else {
+                $("#restrictByScoreTypeInput").parent().addClass("disabled");
+            }
+            $("#restrictByScoreValueInput").prop("disabled", !this.checked);
+        }
+    });
+}
+
+function setupForm() {
     /* Make sure one or more of include images, animated images, videos or others are checked */
     $.fn.form.settings.rules.includeAny = function(value) {
         return $("#includeImagesInput").parent().checkbox("is checked")
@@ -98,25 +104,41 @@ $(document).ready(function() {
             */
             $(".ui.form").form("validate form");
         });
+}
 
-    $("#restrictByScoreInput").parent().checkbox({
-        onChange: function() {
-            if (this.checked) {
-                $("#restrictByScoreTypeInput").parent().removeClass("disabled");
-            } else {
-                $("#restrictByScoreTypeInput").parent().addClass("disabled");
-            }
-            $("#restrictByScoreValueInput").prop("disabled", !this.checked);
+function setupButtons() {
+    $("#subredditOrUserButtons .button").click(function() {
+        var target = $(this).data("target");
+        var isUserTarget = target == targets.USER;
+        var isSubredditTarget = target == targets.SUBREDDIT;
+
+        var targetNameLabel = isUserTarget ? "User Name" : "Subreddit Name";
+        $("label[for=targetNameInput]").text(targetNameLabel);
+        var sectionInputField = $("#sectionInput").parents(".field").first();
+        sectionInputField.prop("hidden", isUserTarget);
+        if (isUserTarget) {
+            sectionInputField.parent().removeClass("two fields");
+        } else {
+            sectionInputField.parent().addClass("two fields");
         }
+        $("#searchFilterInput").parent().prop("hidden", isUserTarget);
+
+        if (isSubredditTarget) {
+            setRandomNamePlaceholder();
+        }
+
+        $("#targetNameInput").focus();
+        $("#targetNameInput").select();
     });
-});
+    $("#downloadButton").click(function() {
+        $("#unknownNameErrorBox").hide();
+        $("#noImagesFoundWarningBox").hide();
+        $("#processingInfoBox").hide();
 
-$("#downloadButton").click(function() {
-    $("#unknownNameErrorBox").hide();
-    $("#noImagesFoundWarningBox").hide();
-    $("#processingInfoBox").hide();
-
-    if ($(".ui.form").form("validate form")) {
+        if (!$(".ui.form").form("validate form")) {
+            return;
+        }
+    
         /* Reset states */
         $(".ui.form").addClass("loading");
         $("#downloadingInfoBox").show();
@@ -134,6 +156,7 @@ $("#downloadButton").click(function() {
         sectionTimespan = ""; // Set further down if section contains a timespan (eg. section is "top-week")
         searchFilter = $("#searchFilterInput").val();
         nameFormat = $("#nameFormatInput").val();
+        maxPostCount = $("#downloadAmountInput").val();
         prependOrderIndex = $("#prependOrderIndexInput").parent().checkbox("is checked");
         restrictByScore = $("#restrictByScoreInput").parent().checkbox("is checked");
         restrictByScoreType = $("#restrictByScoreTypeInput").val();
@@ -177,16 +200,14 @@ $("#downloadButton").click(function() {
         }
 
         /* Find images to scrape and start downloading */
-        maxPostCount = $("#downloadAmountInput").val();
         maxPostsPerRequest = MAX_POSTS_PER_REQUEST;
         updateUI();
         download();
-    }
-});
-
-$("#cancelDownloadButton").click(function() {
-    doneDownloading();
-});
+    });
+    $("#cancelDownloadButton").click(function() {
+        doneDownloading();
+    });
+}
 
 function updateUI() {
     $("#downloadedCountText").text(downloadedCount);
@@ -689,10 +710,3 @@ function setRandomNamePlaceholder() {
     $("#targetNameInput").attr("placeholder", 
         subreddits[Math.floor(Math.random() * subreddits.length)]);
 }
-
-// https://stackoverflow.com/a/30949767/4313694
-$("button").on("mousedown", 
-    function(event) {
-        event.preventDefault();
-    }
-);
