@@ -40,6 +40,7 @@
                 - Added support for downloading videos/gifs from posts linking to Gfycat<br>
                 - Split the options into tabs to remove the need to scroll down to the Download button<br>
                 - Added an option to the Naming tab for prepending the post number to file names<br>
+                - Added support for downloading content from crossposts
             </p>
             <h2 class="ui medium header">
                 <div class="sub header">November 5, 2021</div>
@@ -159,12 +160,16 @@
                 </div>
                 <div class="ui tab" data-tab="third">
                     <div class="field">
-                        <label for="nameFormatInput">Name Items By</label>
+                        <label for="nameFormatInput">Name Items By*</label>
                         <select class="ui search dropdown" id="nameFormatInput">
                             <option value="post-title">Post Title</option>
                             <option value="post-id">Post ID</option>
                             <option value="file-name">Downloaded File Name</option>
                         </select>
+                    </div>
+
+                    <div class="field">
+                        <small>* Items downloaded from crossposts will be named as if the original post was downloaded.</small>
                     </div>
         
                     <div class="field">

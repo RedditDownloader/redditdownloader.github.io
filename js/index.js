@@ -296,7 +296,19 @@ function downloadSucceeded(result, status, xhr) {
 
     for (let i = 0; i < children.length; i++) {
         const post = children[i].data;
-        downloadPost(post);
+        if (post == null) {
+            console.log("Error: post data missing in Reddit API response");
+            continue;
+        }
+
+        if (post.crosspost_parent_list && post.crosspost_parent_list.length > 0) {
+            const originalPost = post.crosspost_parent_list[0];
+            console.log("Info: post " + post.name + " is a crosspost of " + originalPost.name + ", downloading that instead");
+            downloadPost(originalPost);
+        } else {
+            downloadPost(post);
+        }
+
         if (postCount == maxPostCount) {
             console.log("Info: reached postCount = maxPostCount, will stop iterating over posts");
             break;
