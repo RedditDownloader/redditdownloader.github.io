@@ -37,8 +37,26 @@ $(document).ready(function() {
     $(".ui.menu .item").tab();
     $(".ui.checkbox").checkbox();
     $("select.dropdown").dropdown();
-    $('.message .close').on('click', function() {
-        $(this).closest('.message').transition('fade');
+    $(".message .close").on("click", function() {
+        $(this).closest(".message").transition("fade");
+    });
+    $(".ui.buttons .button").on("click", function() {
+        $(this).addClass("active").siblings().removeClass("active");
+
+        var text = $(this).text();
+        if (text === "Subreddit") {
+            $("label[for=targetNameInput]").text("Subreddit Name");
+            $("#sectionInput").parent().removeClass("disabled");
+            $("#searchFilterInput").prop("disabled", false);
+            setRandomNamePlaceholder();
+        } else if (text === "User") {
+            $("label[for=targetNameInput]").text("User Name");
+            $("#targetNameInput").attr("placeholder", "username");
+            $("#sectionInput").parent().addClass("disabled");
+            $("#searchFilterInput").prop("disabled", true);
+        }
+        $("#targetNameInput").focus();
+        $("#targetNameInput").select();
     });
 
     /* Make sure one or more of include images, animated images, videos or others are checked */
@@ -79,24 +97,6 @@ $(document).ready(function() {
             $("#restrictByScoreValueInput").prop("disabled", !this.checked);
         }
     });
-
-    $("#userDownloadInput").parent().checkbox({
-        onChange: function() {
-            if (this.checked) {
-                $("label[for=targetNameInput]").text("User Name");
-                $("#targetNameInput").attr("placeholder", "username");
-                $("#sectionInput").parent().addClass("disabled");
-                $("#searchFilterInput").prop("disabled", true);
-            } else {
-                $("label[for=targetNameInput]").text("Subreddit Name");
-                $("#sectionInput").parent().removeClass("disabled");
-                $("#searchFilterInput").prop("disabled", false);
-                setRandomNamePlaceholder();
-            }
-            $("#targetNameInput").focus();
-            $("#targetNameInput").select();
-        }
-    });
 });
 
 $("#downloadButton").click(function() {
@@ -116,7 +116,7 @@ $("#downloadButton").click(function() {
         zip = new JSZip();
 
         /* Read user options */
-        userDownload = $("#userDownloadInput").parent().checkbox("is checked");
+        userDownload = $("#subredditOrUserButtons .active:contains('User')").length > 0;
         targetName = $("#targetNameInput").val();
         section = $("#sectionInput").val();
         sectionTimespan = ""; // Set further down if section contains a timespan (eg. section is "top-week")
