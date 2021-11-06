@@ -37,6 +37,9 @@ $(document).ready(function() {
     $(".ui.menu .item").tab();
     $(".ui.checkbox").checkbox();
     $("select.dropdown").dropdown();
+    $('.message .close').on('click', function() {
+        $(this).closest('.message').transition('fade');
+    });
 
     /* Make sure one or more of include images, animated images, videos or others are checked */
     $.fn.form.settings.rules.includeAny = function(value) {
