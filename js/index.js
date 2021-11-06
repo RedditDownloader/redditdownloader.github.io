@@ -1,40 +1,53 @@
-var CORS_PROXY_URL = "https://api.allorigins.win/raw?url=";
-var CHECK_DOWNLOADS_FINISHED_EVERY_MS = 100;
-var MAX_POSTS_PER_REQUEST = 100;
-var MIN_POSTS_PER_REQUEST = 5;
-var RETRY_POSTS_FACTOR = 0.7;
+const CORS_PROXY_URL = "https://api.allorigins.win/raw?url=";
+const CHECK_DOWNLOADS_FINISHED_EVERY_MS = 100;
+const MAX_POSTS_PER_REQUEST = 100;
+const MIN_POSTS_PER_REQUEST = 5;
+const RETRY_POSTS_FACTOR = 0.7;
 
-const targets = {
+const RANDOM_SUBREDDITS = [
+    "funny",
+    "pics",
+    "me_irl",
+    "aww",
+    "dankmemes",
+    "mildlyinteresting",
+    "AdviceAnimals",
+    "CrappyDesign",
+    "OldSchoolCool",
+    "2007scape"
+];
+
+const Target = {
     SUBREDDIT: 0,
     USER: 1
 };
 
 /* User options */
-var userDownload;
-var targetName;
-var section;
-var maxPostCount;
-var maxPostsPerRequest;
-var nameFormat;
-var prependOrderIndex;
-var restrictByScore;
-var restrictByScoreType;
-var restrictByScoreValue;
-var includeImages;
-var includeGifs;
-var includeVideos;
-var includeOthers;
-var includeNonReddit;
-var includeAsLink;
-var includeNsfw;
+let userDownload;
+let targetName;
+let section;
+let maxPostCount;
+let maxPostsPerRequest;
+let nameFormat;
+let prependOrderIndex;
+let restrictByScore;
+let restrictByScoreType;
+let restrictByScoreValue;
+let includeImages;
+let includeGifs;
+let includeVideos;
+let includeOthers;
+let includeNonReddit;
+let includeAsLink;
+let includeNsfw;
 
-var checkFinishedInterval;
-var downloadRequests = new Set();
-var downloadedCount;
-var toDownloadCount;
-var postCount;
-var downloadedBytes;
-var zip;
+let checkFinishedInterval;
+let downloadRequests = new Set();
+let downloadedCount;
+let toDownloadCount;
+let postCount;
+let downloadedBytes;
+let zip;
 
 $(document).ready(function() {
     setRandomNamePlaceholder();
@@ -63,25 +76,9 @@ function setupSemanticUI() {
     );
 }
 
-/*
-    Puts a random subreddit as sub name inputbox placeholder,
-    list taken from https://www.reddit.com/reddits 
-*/
 function setRandomNamePlaceholder() {
-    var subreddits = [
-        "funny",
-        "pics",
-        "me_irl",
-        "aww",
-        "dankmemes",
-        "mildlyinteresting",
-        "AdviceAnimals",
-        "CrappyDesign",
-        "OldSchoolCool",
-        "2007scape"
-    ];
     $("#targetNameInput").attr("placeholder", 
-        subreddits[Math.floor(Math.random() * subreddits.length)]);
+        RANDOM_SUBREDDITS[Math.floor(Math.random() * RANDOM_SUBREDDITS.length)]);
 }
 
 function setupFilters() {
@@ -129,13 +126,13 @@ function setupForm() {
 
 function setupButtons() {
     $("#subredditOrUserButtons .button").click(function() {
-        var target = $(this).data("target");
-        var isUserTarget = target == targets.USER;
-        var isSubredditTarget = target == targets.SUBREDDIT;
+        const target = $(this).data("target");
+        const isUserTarget = target == Target.USER;
+        const isSubredditTarget = target == Target.SUBREDDIT;
 
-        var targetNameLabel = isUserTarget ? "User Name" : "Subreddit Name";
+        const targetNameLabel = isUserTarget ? "User Name" : "Subreddit Name";
         $("label[for=targetNameInput]").text(targetNameLabel);
-        var sectionInputField = $("#sectionInput").parents(".field").first();
+        let sectionInputField = $("#sectionInput").parents(".field").first();
         sectionInputField.prop("hidden", isUserTarget);
         if (isUserTarget) {
             sectionInputField.parent().removeClass("two fields");
@@ -171,7 +168,7 @@ function setupButtons() {
         zip = new JSZip();
 
         /* Read user options */
-        userDownload = $("#subredditOrUserButtons .active[data-target='" + targets.USER + "']").length > 0;
+        userDownload = $("#subredditOrUserButtons .active[data-target='" + Target.USER + "']").length > 0;
         targetName = $("#targetNameInput").val();
         section = $("#sectionInput").val();
         sectionTimespan = ""; // Set further down if section contains a timespan (eg. section is "top-week")
@@ -215,7 +212,7 @@ function setupButtons() {
         }
         
         if (section.includes("-")) {
-            var split = section.split("-");
+            const split = section.split("-");
             section = split[0];
             sectionTimespan = split[1];
         }
@@ -242,14 +239,14 @@ function download(anchor) {
     }
 
     /* Max MAX_POSTS_PER_REQUEST posts per request */
-    var maxPostCountNow = Math.min(maxPostCount, maxPostsPerRequest);
+    let maxPostCountNow = Math.min(maxPostCount, maxPostsPerRequest);
 
     /* Prevent extreme amounts of requests in the case that maxPostCountNow is for example 1 */
     if (maxPostCountNow < MIN_POSTS_PER_REQUEST) {
         maxPostCountNow = MIN_POSTS_PER_REQUEST;
     }
 
-    var url;
+    let url;
 
     if (userDownload) {
         url = "https://www.reddit.com/user/" + targetName
@@ -287,10 +284,10 @@ function downloadSucceeded(result, status, xhr) {
         return;
     }
 
-    var children = result.data.children;
+    const children = result.data.children;
 
-    for (var i = 0; i < children.length; i++) {
-        var post = children[i].data;
+    for (let i = 0; i < children.length; i++) {
+        const post = children[i].data;
         downloadPost(post);
         if (postCount == maxPostCount) {
             console.log("Info: reached postCount = maxPostCount, will stop iterating over posts");
@@ -312,7 +309,7 @@ function downloadSucceeded(result, status, xhr) {
 }
 
 function downloadPost(post) {
-    var url = post.url;
+    const url = post.url;
 
     /* Only download if there's a URL */
     if (url == null) {
@@ -357,7 +354,7 @@ function downloadPost(post) {
         return;
     }
 
-    var postIdx = postCount++;
+    const postIdx = postCount++;
 
     if (isDirectImageUrl(url) || isDirectVideoUrl(url) || isDirectGifUrl(url)) {
         /* Handle item with extension (direct link) */
@@ -390,7 +387,7 @@ function downloadRedditVideo(url, post, postIdx) {
         return;
     }
 
-    var videoUrl = post.media.reddit_video.fallback_url;
+    const videoUrl = post.media.reddit_video.fallback_url;
     // TODO: Add the audio track to the video
     //var audioUrl = videoUrl.replace(/(\d)+\.mp4/, 'audio.mp4');
 
@@ -401,7 +398,7 @@ function downloadRedditVideo(url, post, postIdx) {
 function downloadImgurAlbum(url, post, postIdx) {
     toDownloadCount++;
 
-    var imageName = url.substring(url.lastIndexOf("/") + 1);
+    const imageName = url.substring(url.lastIndexOf("/") + 1);
 
     $.ajax({
         url: "https://api.imgur.com/3/album/" + imageName,
@@ -414,7 +411,7 @@ function downloadImgurAlbum(url, post, postIdx) {
         post: post, // pass to success function
         postIdx: postIdx, // pass to success function
         success: function(result, status, xhr) {
-            var data = result.data;
+            const data = result.data;
             if (!data) {
                 console.log("Error: data missing in Imgur API response for '" + url + "'");
                 toDownloadCount--;
@@ -424,13 +421,13 @@ function downloadImgurAlbum(url, post, postIdx) {
                 toDownloadCount--;
                 return;
             }
-            var images = data.images;
-            for (var i = 0; i < images.length; i++) {
-                var image = images[i];
+            const images = data.images;
+            for (let i = 0; i < images.length; i++) {
+                const image = images[i];
                 if (!includeNsfw && image.nsfw) {
                     continue;
                 }
-                var url = image.link;
+                const url = image.link;
                 if (!includeGifs && isDirectGifUrl(url)
                     || !includeVideos && isDirectVideoUrl(url)
                     || !includeImages && isDirectImageUrl(url)) {
@@ -455,7 +452,7 @@ function downloadImgurAlbum(url, post, postIdx) {
 function downloadSingleImageImgurAlbum(url, post, postIdx) {
     toDownloadCount++;
 
-    var imageName = url.substring(url.lastIndexOf("/") + 1);
+    const imageName = url.substring(url.lastIndexOf("/") + 1);
 
     $.ajax({
         url: "https://api.imgur.com/3/image/" + imageName,
@@ -468,7 +465,7 @@ function downloadSingleImageImgurAlbum(url, post, postIdx) {
         post: post, // pass to success function
         postIdx: postIdx, // pass to success function
         success: function(result, status, xhr) {
-            var data = result.data;
+            const data = result.data;
             if (!data) {
                 console.log("Error: data missing in Imgur API response for '" + url + "'");
                 toDownloadCount--;
@@ -478,7 +475,7 @@ function downloadSingleImageImgurAlbum(url, post, postIdx) {
                 toDownloadCount--;
                 return;
             }
-            var url = data.link;
+            const url = data.link;
             if (!includeGifs && isDirectGifUrl(url)
                 || !includeVideos && isDirectVideoUrl(url)
                 || !includeImages && isDirectImageUrl(url)) {
@@ -501,7 +498,7 @@ function downloadSingleImageImgurAlbum(url, post, postIdx) {
 function downloadGfycat(url, post, postIdx) {
     toDownloadCount++;
 
-    var gfycatName = url.substring(url.lastIndexOf("/") + 1);
+    const gfycatName = url.substring(url.lastIndexOf("/") + 1);
 
     $.ajax({
         url: "https://api.gfycat.com/v1/gfycats/" + gfycatName,
@@ -511,7 +508,7 @@ function downloadGfycat(url, post, postIdx) {
         post: post, // pass to success function
         postIdx: postIdx, // pass to success function
         success: function(result, status, xhr) {
-            var gfyItem = result.gfyItem;
+            const gfyItem = result.gfyItem;
             if (!gfyItem) {
                 console.log("Error: gfyItem missing in Gfycat API response for '" + url + "'");
                 toDownloadCount--;
@@ -521,7 +518,7 @@ function downloadGfycat(url, post, postIdx) {
                 toDownloadCount--;
                 return;
             }
-            var url;
+            let url;
             if (includeVideos) {
                 url = gfyItem.mp4Url;
             } else if (includeGifs) {
@@ -577,8 +574,8 @@ function downloadUrl(url, post, postIdx) {
     console.log("Info: queueing '" + url + "' for download while downloadedCount = " + downloadedCount + " and toDownloadCount = " + toDownloadCount);
     downloadFileAsBase64(url, 
         function(data) {
-            var fileName = getFileNameForPost(url, post, postIdx);
-            var extension = getFileExtension(url);
+            const fileName = getFileNameForPost(url, post, postIdx);
+            const extension = getFileExtension(url);
             addFileToZip(fileName, extension, data, post, true);
             downloadedCount++;
             updateUI();
@@ -587,12 +584,12 @@ function downloadUrl(url, post, postIdx) {
             console.log("Warn: failed to download '" + url + "'" + (includeAsLink ? ", will save as link" : ""));
             if (includeAsLink) {
                 /* Windows URL format */
-                var data = "[{000214A0-0000-0000-C000-000000000046}]\n" + 
+                const data = "[{000214A0-0000-0000-C000-000000000046}]\n" + 
                            "Prop3=19,11\n" + 
                            "[InternetShortcut]\n" +
                            "IDList=\n" +
                            "URL=" + url;
-                var fileName = getFileNameForPost(url, post, postIdx);
+                const fileName = getFileNameForPost(url, post, postIdx);
                 addFileToZip(fileName, ".url", data, post, false);
                 downloadedCount++;
                 updateUI();
@@ -604,11 +601,11 @@ function downloadUrl(url, post, postIdx) {
 }
 
 function downloadFileAsBase64(url, callback, errored) {
-    var xhr = new XMLHttpRequest();
+    const xhr = new XMLHttpRequest();
     xhr.onload = function() {
         downloadRequests.delete(this);
 
-        var blob = xhr.response;
+        const blob = xhr.response;
         callback(blob);
     };
     xhr.onerror = function() {
@@ -622,32 +619,32 @@ function downloadFileAsBase64(url, callback, errored) {
 }
 
 function getFileNameForPost(url, post, postIdx) {
-    var fileName = prependOrderIndex ? (postIdx.toString() + "_") : "";
+    let fileName = prependOrderIndex ? (postIdx.toString() + "_") : "";
     if (nameFormat === "file-name") {
         fileName += getFileName(url);
     } else if (nameFormat === "post-id") {
         fileName += post.name;
     } else {
         /* default: post-name */
-        var regex = /[^\/]+(?=\/$|$)/g;
+        const regex = /[^\/]+(?=\/$|$)/g;
         fileName += regex.exec(post.permalink)[0];
     }
     return fileName;
 }
 
 function getFileName(url) {
-    var fileNameWithExt = getFileNameWithExtension(url);
+    const fileNameWithExt = getFileNameWithExtension(url);
     return fileNameWithExt.substring(0, fileNameWithExt.lastIndexOf("."));
 }
 
 function getFileExtension(url) {
-    var fileNameWithExt = getFileNameWithExtension(url);
+    const fileNameWithExt = getFileNameWithExtension(url);
     return fileNameWithExt.substring(fileNameWithExt.lastIndexOf("."));
 }
 
 function getFileNameWithExtension(url) {
-    var regex = /[^/\\&\?]+\.\w{3,4}(?=[\?&].*$|$)/;
-    var m = regex.exec(url);
+    const regex = /[^/\\&\?]+\.\w{3,4}(?=[\?&].*$|$)/;
+    const m = regex.exec(url);
     return m[0];
 }
 
@@ -655,8 +652,8 @@ function addFileToZip(fileName, extension, data, post, dataIsBinary) {
     /* post-id is the only file name guaranteed to be unique */
     if (nameFormat !== "post-id") {
         /* Make sure we don't overwrite a saved file */
-        var oldFileName = fileName;
-        var counter = 0;
+        let oldFileName = fileName;
+        let counter = 0;
         while (zip.file(oldFileName + extension)) {
             oldFileName = fileName + "_" + counter++;
         }
@@ -701,7 +698,7 @@ function doneDownloading() {
 
     $("#downloadingInfoBox").hide();
 
-    for (var xhr in downloadRequests) {
+    for (const xhr in downloadRequests) {
         xhr.abort();
     }
 
