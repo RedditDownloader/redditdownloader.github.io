@@ -83,38 +83,29 @@
 
             <div class="field">
                 <div class="ui pointing secondary menu">
-                    <a class="item active" data-tab="first">File types</a>
+                    <a class="item active" data-tab="first">Types</a>
                     <a class="item" data-tab="second">Naming and amount</a>
                     <a class="item" data-tab="third">Filters</a>
                     <a class="item" data-tab="fourth">Misc</a>
                 </div>
                 <div class="ui tab active" data-tab="first">
-                    <div class="ui segment">
+                    <div class="two fields">
                         <div class="field">
-                            <div class="ui toggle checkbox">
-                                <input class="hidden" id="includeImagesInput" type="checkbox" checked>
-                                <label>Include images (jpg/jpeg/png/bmp/svg/webp/raw/tiff/ico/heif)</label>
+                            <div class="ui segment">
+                                <div class="field">
+                                    <div class="ui toggle checkbox">
+                                        <input class="hidden" id="includeImagesInput" type="checkbox" checked>
+                                        <label>Images</label>
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                    </div>
-        
-                    <div class="two fields">
                         <div class="field">
                             <div class="ui segment">
                                 <div class="field">
                                     <div class="ui toggle checkbox">
                                         <input class="hidden" id="includeGifsInput" type="checkbox">
-                                        <label>Include animated images (gif/gifv)</label>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="field">
-                            <div class="ui segment">
-                                <div class="field">
-                                    <div class="ui toggle checkbox">
-                                        <input class="hidden" id="includeVideosInput" type="checkbox" checked>
-                                        <label>Include videos (no audio)</label>
+                                        <label>Gifs</label>
                                     </div>
                                 </div>
                             </div>
@@ -126,8 +117,8 @@
                             <div class="ui segment">
                                 <div class="field">
                                     <div class="ui toggle checkbox">
-                                        <input class="hidden" id="includeOthersInput" type="checkbox">
-                                        <label>Include other file types (zip/txt/..)</label>
+                                        <input class="hidden" id="includeVideosInput" type="checkbox" checked>
+                                        <label>Videos</label>
                                     </div>
                                 </div>
                             </div>
@@ -136,9 +127,20 @@
                             <div class="ui segment">
                                 <div class="field">
                                     <div class="ui toggle checkbox">
-                                        <input class="hidden" id="includeNonRedditInput" type="checkbox" checked>
-                                        <label>Download from Imgur and Gfycat</label>
+                                        <input class="hidden" id="includeOthersInput" type="checkbox">
+                                        <label>Files</label>
                                     </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+        
+                    <div class="field">
+                        <div class="ui segment">
+                            <div class="field">
+                                <div class="ui toggle checkbox">
+                                    <input class="hidden" id="includeNonRedditInput" type="checkbox" checked>
+                                    <label>Include content from Imgur and Gfycat</label>
                                 </div>
                             </div>
                         </div>
@@ -147,7 +149,7 @@
                 <div class="ui tab" data-tab="second">
                     <div class="two fields">
                         <div class="field">
-                            <label for="nameFormatInput">Name Downloads By</label>
+                            <label for="nameFormatInput">Name Items By</label>
                             <select class="ui search dropdown" id="nameFormatInput">
                                 <option value="post-title">Post Title</option>
                                 <option value="post-id">Post ID</option>
@@ -155,7 +157,7 @@
                             </select>
                         </div>
                         <div class="field">
-                            <label for="downloadAmountInput">Download Amount*</label>
+                            <label for="downloadAmountInput">Posts*</label>
                             <input id="downloadAmountInput" type="number" step="5" min="5" value="20">
                         </div>
                     </div>
