@@ -277,14 +277,22 @@ function download(anchor) {
 }
 
 function downloadSucceeded(result, status, xhr) {
-    /* Make sure we haven't been redirected to the search page = subreddit doesn't exist */
-    if (!userDownload && !searchFilter && result.data.dist === 0 && typeof anchor === "undefined") {
+    const data = result.data;
+    if (data == null) {
+        console.log("Error: data missing in Reddit API response");
         $("#unknownNameErrorBox").show();
         doneDownloading();
         return;
     }
 
-    const children = result.data.children;
+    /* Make sure we haven't been redirected to the search page = subreddit doesn't exist */
+    if (!userDownload && !searchFilter && data.dist === 0 && typeof anchor === "undefined") {
+        $("#unknownNameErrorBox").show();
+        doneDownloading();
+        return;
+    }
+
+    const children = data.children;
 
     for (let i = 0; i < children.length; i++) {
         const post = children[i].data;
@@ -295,7 +303,7 @@ function downloadSucceeded(result, status, xhr) {
         }
     }
 
-    if (children.length === 0 || postCount >= maxPostCount || result.data.after === null) {
+    if (children.length === 0 || postCount >= maxPostCount || data.after === null) {
         console.log("Info: will start waiting for pending downloads to complete now");
 
         checkFinishedInterval = setInterval(function() {
@@ -304,7 +312,7 @@ function downloadSucceeded(result, status, xhr) {
             }
         }, CHECK_DOWNLOADS_FINISHED_EVERY_MS);
     } else {
-        download(result.data.after);
+        download(data.after);
     }
 }
 
