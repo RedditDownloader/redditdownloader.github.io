@@ -63,6 +63,27 @@ function setupSemanticUI() {
     );
 }
 
+/*
+    Puts a random subreddit as sub name inputbox placeholder,
+    list taken from https://www.reddit.com/reddits 
+*/
+function setRandomNamePlaceholder() {
+    var subreddits = [
+        "funny",
+        "pics",
+        "me_irl",
+        "aww",
+        "dankmemes",
+        "mildlyinteresting",
+        "AdviceAnimals",
+        "CrappyDesign",
+        "OldSchoolCool",
+        "2007scape"
+    ];
+    $("#targetNameInput").attr("placeholder", 
+        subreddits[Math.floor(Math.random() * subreddits.length)]);
+}
+
 function setupFilters() {
     $("#restrictByScoreInput").parent().checkbox({
         onChange: function() {
@@ -533,25 +554,23 @@ function downloadUnknownDirectFile(url, post, postIdx) {
     downloadUrl(url, post, postIdx);
 }
 
-function downloadFailed(error) {
-    if (error.status === 404 || error.status === 403) {
-        /* If HTTP status is 404 or 403, the subreddit probably doesn't exist */
-        $("#unknownNameErrorBox").show();
-        doneDownloading();
-    } else if (error.status == 0) {
-        /* The response body is likely too large for the CORS proxy, retry with fewer posts */
-        maxPostsPerRequest = Math.ceil(maxPostsPerRequest * RETRY_POSTS_FACTOR);
-        if (maxPostsPerRequest >= MIN_POSTS_PER_REQUEST) {
-            download(anchor);
-        } else {
-            alert("Retried retrieval of Reddit posts too many times, are you connected to the Internet?");
-            doneDownloading();
-        }
-    } else if (error.status !== 200) {
-        /* Notify user when a non-handled status code is received */
-        alert("Unknown error " + JSON.stringify(error) + " received from lookup request.\nPlease contact the developer.");
-        doneDownloading();
-    }
+function isDirectImageUrl(url) {
+    url = url.toLowerCase();
+    return url.indexOf(".jpg") !== -1 || url.indexOf(".jpeg") !== -1
+        || url.indexOf(".png") !== -1 || url.indexOf(".bmp") !== -1
+        || url.indexOf(".svg") !== -1 || url.indexOf(".webp") !== -1
+        || url.indexOf(".raw") !== -1 || url.indexOf(".tiff") !== -1
+        || url.indexOf(".ico") !== -1 || url.indexOf(".heif") !== -1;
+}
+
+function isDirectVideoUrl(url) {
+    url = url.toLowerCase();
+    return url.indexOf(".mp4") !== -1;
+}
+
+function isDirectGifUrl(url) {
+    url = url.toLowerCase();
+    return url.indexOf(".gif") !== -1 || url.indexOf(".gifv") !== -1;
 }
 
 function downloadUrl(url, post, postIdx) {
@@ -584,6 +603,24 @@ function downloadUrl(url, post, postIdx) {
     );
 }
 
+function downloadFileAsBase64(url, callback, errored) {
+    var xhr = new XMLHttpRequest();
+    xhr.onload = function() {
+        downloadRequests.delete(this);
+
+        var blob = xhr.response;
+        callback(blob);
+    };
+    xhr.onerror = function() {
+        errored();
+    };
+    xhr.open("GET", CORS_PROXY_URL + encodeURIComponent(url));
+    xhr.responseType = "blob";
+    xhr.send();
+
+    downloadRequests.add(xhr);
+}
+
 function getFileNameForPost(url, post, postIdx) {
     var fileName = prependOrderIndex ? (postIdx.toString() + "_") : "";
     if (nameFormat === "file-name") {
@@ -596,6 +633,22 @@ function getFileNameForPost(url, post, postIdx) {
         fileName += regex.exec(post.permalink)[0];
     }
     return fileName;
+}
+
+function getFileName(url) {
+    var fileNameWithExt = getFileNameWithExtension(url);
+    return fileNameWithExt.substring(0, fileNameWithExt.lastIndexOf("."));
+}
+
+function getFileExtension(url) {
+    var fileNameWithExt = getFileNameWithExtension(url);
+    return fileNameWithExt.substring(fileNameWithExt.lastIndexOf("."));
+}
+
+function getFileNameWithExtension(url) {
+    var regex = /[^/\\&\?]+\.\w{3,4}(?=[\?&].*$|$)/;
+    var m = regex.exec(url);
+    return m[0];
 }
 
 function addFileToZip(fileName, extension, data, post, dataIsBinary) {
@@ -619,43 +672,25 @@ function addFileToZip(fileName, extension, data, post, dataIsBinary) {
     downloadedBytes += dataIsBinary ? data.size : data.length;
 }
 
-function isDirectImageUrl(url) {
-    url = url.toLowerCase();
-    return url.indexOf(".jpg") !== -1 || url.indexOf(".jpeg") !== -1
-        || url.indexOf(".png") !== -1 || url.indexOf(".bmp") !== -1
-        || url.indexOf(".svg") !== -1 || url.indexOf(".webp") !== -1
-        || url.indexOf(".raw") !== -1 || url.indexOf(".tiff") !== -1
-        || url.indexOf(".ico") !== -1 || url.indexOf(".heif") !== -1;
-}
-
-function isDirectVideoUrl(url) {
-    url = url.toLowerCase();
-    return url.indexOf(".mp4") !== -1;
-}
-
-function isDirectGifUrl(url) {
-    url = url.toLowerCase();
-    return url.indexOf(".gif") !== -1 || url.indexOf(".gifv") !== -1;
-}
-
-function getFileNameWithExtension(url) {
-    var regex = /[^/\\&\?]+\.\w{3,4}(?=[\?&].*$|$)/;
-    var m = regex.exec(url);
-    return m[0];
-}
-
-function getFileName(url) {
-    var fileNameWithExt = getFileNameWithExtension(url);
-    return fileNameWithExt.substring(0, fileNameWithExt.lastIndexOf("."));
-}
-
-function getFileExtension(url) {
-    var fileNameWithExt = getFileNameWithExtension(url);
-    return fileNameWithExt.substring(fileNameWithExt.lastIndexOf("."));
-}
-
-function isDownloading() {
-    return $(".ui.form").hasClass("loading");
+function downloadFailed(error) {
+    if (error.status === 404 || error.status === 403) {
+        /* If HTTP status is 404 or 403, the subreddit probably doesn't exist */
+        $("#unknownNameErrorBox").show();
+        doneDownloading();
+    } else if (error.status == 0) {
+        /* The response body is likely too large for the CORS proxy, retry with fewer posts */
+        maxPostsPerRequest = Math.ceil(maxPostsPerRequest * RETRY_POSTS_FACTOR);
+        if (maxPostsPerRequest >= MIN_POSTS_PER_REQUEST) {
+            download(anchor);
+        } else {
+            alert("Retried retrieval of Reddit posts too many times, are you connected to the Internet?");
+            doneDownloading();
+        }
+    } else if (error.status !== 200) {
+        /* Notify user when a non-handled status code is received */
+        alert("Unknown error " + JSON.stringify(error) + " received from lookup request.\nPlease contact the developer.");
+        doneDownloading();
+    }
 }
 
 function doneDownloading() {
@@ -703,41 +738,6 @@ function doneDownloading() {
     }
 }
 
-function downloadFileAsBase64(url, callback, errored) {
-    var xhr = new XMLHttpRequest();
-    xhr.onload = function() {
-        downloadRequests.delete(this);
-
-        var blob = xhr.response;
-        callback(blob);
-    };
-    xhr.onerror = function() {
-        errored();
-    };
-    xhr.open("GET", CORS_PROXY_URL + encodeURIComponent(url));
-    xhr.responseType = "blob";
-    xhr.send();
-
-    downloadRequests.add(xhr);
-}
-
-/* 
-    Puts a random subreddit as sub name inputbox placeholder,
-    list taken from https://www.reddit.com/reddits 
-*/
-function setRandomNamePlaceholder() {
-    var subreddits = [
-        "funny",
-        "pics",
-        "me_irl",
-        "aww",
-        "dankmemes",
-        "mildlyinteresting",
-        "AdviceAnimals",
-        "CrappyDesign",
-        "OldSchoolCool",
-        "2007scape"
-    ];
-    $("#targetNameInput").attr("placeholder", 
-        subreddits[Math.floor(Math.random() * subreddits.length)]);
+function isDownloading() {
+    return $(".ui.form").hasClass("loading");
 }
