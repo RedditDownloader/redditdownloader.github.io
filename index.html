@@ -39,7 +39,7 @@
             <p>
                 - Added support for downloading videos/gifs from posts linking to Gfycat<br>
                 - Split the options into tabs to remove the need to scroll down to the Download button<br>
-                - Added an option to the 'Naming and amount' tab for prepending the post number to file names<br>
+                - Added an option to the Naming tab for prepending the post number to file names<br>
             </p>
             <h2 class="ui medium header">
                 <div class="sub header">November 5, 2021</div>
@@ -84,9 +84,10 @@
             <div class="field">
                 <div class="ui pointing secondary menu">
                     <a class="item active" data-tab="first">Types</a>
-                    <a class="item" data-tab="second">Naming and amount</a>
-                    <a class="item" data-tab="third">Filters</a>
-                    <a class="item" data-tab="fourth">Misc</a>
+                    <a class="item" data-tab="second">Amount</a>
+                    <a class="item" data-tab="third">Naming</a>
+                    <a class="item" data-tab="fourth">Filters</a>
+                    <a class="item" data-tab="fifth">Misc</a>
                 </div>
                 <div class="ui tab active" data-tab="first">
                     <div class="two fields">
@@ -147,19 +148,23 @@
                     </div>
                 </div>
                 <div class="ui tab" data-tab="second">
-                    <div class="two fields">
-                        <div class="field">
-                            <label for="nameFormatInput">Name Items By</label>
-                            <select class="ui search dropdown" id="nameFormatInput">
-                                <option value="post-title">Post Title</option>
-                                <option value="post-id">Post ID</option>
-                                <option value="file-name">Downloaded File Name</option>
-                            </select>
-                        </div>
-                        <div class="field">
-                            <label for="downloadAmountInput">Posts*</label>
-                            <input id="downloadAmountInput" type="number" step="5" min="5" value="20">
-                        </div>
+                    <div class="field">
+                        <label for="downloadAmountInput">Posts*</label>
+                        <input id="downloadAmountInput" type="number" step="5" min="5" value="20">
+                    </div>
+
+                    <div class="field">
+                        <small>* The maximum number of posts to download items from. The amount of downloaded and zipped items often exceeds the amount specified here, since posts can have more than one downloadable item. </small>
+                    </div>
+                </div>
+                <div class="ui tab" data-tab="third">
+                    <div class="field">
+                        <label for="nameFormatInput">Name Items By</label>
+                        <select class="ui search dropdown" id="nameFormatInput">
+                            <option value="post-title">Post Title</option>
+                            <option value="post-id">Post ID</option>
+                            <option value="file-name">Downloaded File Name</option>
+                        </select>
                     </div>
         
                     <div class="field">
@@ -170,12 +175,8 @@
                             </div>
                         </div>
                     </div>
-
-                    <div class="field">
-                        <small>* The maximum number of posts to download items from. The amount of downloaded and zipped items often exceeds the amount specified here, since posts can have more than one downloadable item. </small>
-                    </div>
                 </div>
-                <div class="ui tab" data-tab="third">
+                <div class="ui tab" data-tab="fourth">
                     <div class="field">
                         <label for="searchFilterInput">Search Text</label>
                         <input id="searchFilterInput" type="text">
@@ -201,7 +202,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="ui tab" data-tab="fourth">
+                <div class="ui tab" data-tab="fifth">
                     <div class="ui segment">
                         <div class="field">
                             <div class="ui toggle checkbox">
