@@ -4,6 +4,11 @@ var MAX_POSTS_PER_REQUEST = 100;
 var MIN_POSTS_PER_REQUEST = 5;
 var RETRY_POSTS_FACTOR = 0.7;
 
+const targets = {
+    SUBREDDIT: 0,
+    USER: 1
+};
+
 /* User options */
 var userDownload;
 var targetName;
@@ -43,18 +48,25 @@ $(document).ready(function() {
     $(".ui.buttons .button").on("click", function() {
         $(this).addClass("active").siblings().removeClass("active");
 
-        var text = $(this).text();
-        if (text === "Subreddit") {
-            $("label[for=targetNameInput]").text("Subreddit Name");
-            $("#sectionInput").parent().removeClass("disabled");
-            $("#searchFilterInput").prop("disabled", false);
-            setRandomNamePlaceholder();
-        } else if (text === "User") {
-            $("label[for=targetNameInput]").text("User Name");
-            $("#targetNameInput").attr("placeholder", "username");
-            $("#sectionInput").parent().addClass("disabled");
-            $("#searchFilterInput").prop("disabled", true);
+        var target = $(this).data("target");
+        var isUserTarget = target == targets.USER;
+        var isSubredditTarget = target == targets.SUBREDDIT;
+
+        var targetNameLabel = isUserTarget ? "User Name" : "Subreddit Name";
+        $("label[for=targetNameInput]").text(targetNameLabel);
+        var sectionInputField = $("#sectionInput").parents(".field").first();
+        sectionInputField.prop("hidden", isUserTarget);
+        if (isUserTarget) {
+            sectionInputField.parent().removeClass("two fields");
+        } else {
+            sectionInputField.parent().addClass("two fields");
         }
+        $("#searchFilterInput").parent().prop("hidden", isUserTarget);
+
+        if (isSubredditTarget) {
+            setRandomNamePlaceholder();
+        }
+
         $("#targetNameInput").focus();
         $("#targetNameInput").select();
     });
@@ -116,7 +128,7 @@ $("#downloadButton").click(function() {
         zip = new JSZip();
 
         /* Read user options */
-        userDownload = $("#subredditOrUserButtons .active:contains('User')").length > 0;
+        userDownload = $("#subredditOrUserButtons .active[data-target='" + targets.USER + "']").length > 0;
         targetName = $("#targetNameInput").val();
         section = $("#sectionInput").val();
         sectionTimespan = ""; // Set further down if section contains a timespan (eg. section is "top-week")

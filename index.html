@@ -55,9 +55,10 @@
         <div class="ui form">
             <div class="field">
                 <div class="ui fluid small buttons" id="subredditOrUserButtons">
-                    <button class="ui button active">Subreddit</button>
+                    <!-- data-target values from targets enum in JS -->
+                    <button class="ui button active" data-target="0">Subreddit</button>
                     <div class="or"></div>
-                    <button class="ui button">User</button>
+                    <button class="ui button" data-target="1">User</button>
                 </div>
             </div>
 
