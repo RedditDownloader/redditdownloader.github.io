@@ -14,6 +14,14 @@ html, body {
     margin-top: 30px;
 }
 
+#subredditOrUserButtons {
+    margin-bottom: 10px;
+}
+
+#downloadButton {
+    margin-top: 40px;
+}
+
 /* semantic ui overrides */
 .ui.toggle.checkbox label::before {
     background: #E0E1E2 !important;
