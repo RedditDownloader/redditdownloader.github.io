@@ -433,7 +433,7 @@ function downloadRedditVideo(url, post, postIdx) {
 function downloadImgurAlbum(url, post, postIdx) {
     toDownloadCount++;
 
-    const imageName = url.substring(url.lastIndexOf("/") + 1);
+    const imageName = getPartAfterSlash(url);
 
     $.ajax({
         url: "https://api.imgur.com/3/album/" + imageName,
@@ -484,10 +484,14 @@ function downloadImgurAlbum(url, post, postIdx) {
     });
 }
 
+function getPartAfterSlash(url) {
+    return /([^\/]*)[\/]*$/.exec(url)[1];
+}
+
 function downloadSingleImageImgurAlbum(url, post, postIdx) {
     toDownloadCount++;
 
-    const imageName = url.substring(url.lastIndexOf("/") + 1);
+    const imageName = getPartAfterSlash(url);
 
     $.ajax({
         url: "https://api.imgur.com/3/image/" + imageName,
@@ -533,7 +537,7 @@ function downloadSingleImageImgurAlbum(url, post, postIdx) {
 function downloadGfycat(url, post, postIdx) {
     toDownloadCount++;
 
-    const gfycatName = url.substring(url.lastIndexOf("/") + 1);
+    const gfycatName = getPartAfterSlash(url);
 
     $.ajax({
         url: "https://api.gfycat.com/v1/gfycats/" + gfycatName,
