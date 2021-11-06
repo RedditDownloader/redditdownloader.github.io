@@ -351,12 +351,14 @@ function download(anchor) {
                         postIdx: postIdx, // pass to success function
                         success: function(result, status, xhr) {
                             if (!includeNsfw && result.data.nsfw) {
+                                toDownloadCount--;
                                 return;
                             }
                             var url = result.data.link;
                             if (!includeGifs && isDirectGifUrl(url)
                                 || !includeVideos && isDirectVideoUrl(url)
                                 || !includeImages && isDirectImageUrl(url)) {
+                                toDownloadCount--;
                                 return;
                             }
                             downloadUrl(url, this.post, this.postIdx);
