@@ -63,132 +63,137 @@
                 </div>
             </div>
 
-            <h3 class="ui header">File types</h3>
-
-            <div class="ui segment">
-                <div class="field">
-                    <div class="ui toggle checkbox">
-                        <input class="hidden" id="includeImagesInput" type="checkbox" checked>
-                        <label>Include images (jpg/jpeg/png/bmp/svg/webp/raw/tiff/ico/heif)</label>
-                    </div>
-                </div>
-            </div>
-
-            <div class="two fields">
-                <div class="field">
-                    <div class="ui segment">
-                        <div class="field">
-                            <div class="ui toggle checkbox">
-                                <input class="hidden" id="includeGifsInput" type="checkbox">
-                                <label>Include animated images (gif/gifv)</label>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="field">
-                    <div class="ui segment">
-                        <div class="field">
-                            <div class="ui toggle checkbox">
-                                <input class="hidden" id="includeVideosInput" type="checkbox" checked>
-                                <label>Include videos (no audio)</label>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="two fields">
-                <div class="field">
-                    <div class="ui segment">
-                        <div class="field">
-                            <div class="ui toggle checkbox">
-                                <input class="hidden" id="includeOthersInput" type="checkbox">
-                                <label>Include other file types (zip/txt/..)</label>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="field">
-                    <div class="ui segment">
-                        <div class="field">
-                            <div class="ui toggle checkbox">
-                                <input class="hidden" id="includeNonRedditInput" type="checkbox" checked>
-                                <label>Download from Imgur and Gfycat</label>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <h3 class="ui header">Naming and amount</h3>
-
-            <div class="two fields">
-                <div class="field">
-                    <label for="nameFormatInput">Name Downloads By</label>
-                    <select class="ui search dropdown" id="nameFormatInput">
-                        <option value="post-title">Post Title</option>
-                        <option value="post-id">Post ID</option>
-                        <option value="file-name">Downloaded File Name</option>
-                    </select>
-                </div>
-                <div class="field">
-                    <label for="imageAmountInput">Download Amount</label>
-                    <input id="imageAmountInput" type="number" step="5" min="5" value="20">
-                </div>
-            </div>
-
             <div class="field">
-                <div class="ui segment">
-                    <div class="ui toggle checkbox">
-                        <input class="hidden" id="prependOrderIndexInput" type="checkbox" checked>
-                        <label>Number downloads according to the order of posts<br><small>E.g. <b>0_</b>neite.png, <b>3_</b>bob.png, #<b>0</b> being the first post and #<b>1</b>, #<b>2</b> having no downloadable items</small></label>
+                <div class="ui pointing secondary menu">
+                    <a class="item active" data-tab="first">File types</a>
+                    <a class="item" data-tab="second">Naming and amount</a>
+                    <a class="item" data-tab="third">Filters</a>
+                    <a class="item" data-tab="fourth">Misc</a>
+                </div>
+                <div class="ui tab active" data-tab="first">
+                    <div class="ui segment">
+                        <div class="field">
+                            <div class="ui toggle checkbox">
+                                <input class="hidden" id="includeImagesInput" type="checkbox" checked>
+                                <label>Include images (jpg/jpeg/png/bmp/svg/webp/raw/tiff/ico/heif)</label>
+                            </div>
+                        </div>
+                    </div>
+        
+                    <div class="two fields">
+                        <div class="field">
+                            <div class="ui segment">
+                                <div class="field">
+                                    <div class="ui toggle checkbox">
+                                        <input class="hidden" id="includeGifsInput" type="checkbox">
+                                        <label>Include animated images (gif/gifv)</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="field">
+                            <div class="ui segment">
+                                <div class="field">
+                                    <div class="ui toggle checkbox">
+                                        <input class="hidden" id="includeVideosInput" type="checkbox" checked>
+                                        <label>Include videos (no audio)</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+        
+                    <div class="two fields">
+                        <div class="field">
+                            <div class="ui segment">
+                                <div class="field">
+                                    <div class="ui toggle checkbox">
+                                        <input class="hidden" id="includeOthersInput" type="checkbox">
+                                        <label>Include other file types (zip/txt/..)</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="field">
+                            <div class="ui segment">
+                                <div class="field">
+                                    <div class="ui toggle checkbox">
+                                        <input class="hidden" id="includeNonRedditInput" type="checkbox" checked>
+                                        <label>Download from Imgur and Gfycat</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
-            </div>
-
-            <h3 class="ui header">Filters</h3>
-
-            <div class="field">
-                <label for="searchFilterInput">Search Text</label>
-                <input id="searchFilterInput" type="text">
-            </div>
-
-            <div class="ui segment">
-                <div class="field">
-                    <div class="ui toggle checkbox">
-                        <input class="hidden" id="restrictByScoreInput" type="checkbox">
-                        <label>Restrict downloads by post score</label>
+                <div class="ui tab" data-tab="second">
+                    <div class="two fields">
+                        <div class="field">
+                            <label for="nameFormatInput">Name Downloads By</label>
+                            <select class="ui search dropdown" id="nameFormatInput">
+                                <option value="post-title">Post Title</option>
+                                <option value="post-id">Post ID</option>
+                                <option value="file-name">Downloaded File Name</option>
+                            </select>
+                        </div>
+                        <div class="field">
+                            <label for="imageAmountInput">Download Amount</label>
+                            <input id="imageAmountInput" type="number" step="5" min="5" value="20">
+                        </div>
                     </div>
-                </div>
-                <div class="two fields">
+        
                     <div class="field">
-                        <select class="ui search disabled dropdown" id="restrictByScoreTypeInput">
-                            <option value="ge">Greater Than or Equal To</option>
-                            <option value="le">Less Than or Equal To</option>
-                        </select>
+                        <div class="ui segment">
+                            <div class="ui toggle checkbox">
+                                <input class="hidden" id="prependOrderIndexInput" type="checkbox" checked>
+                                <label>Number downloads according to the order of posts<br><small>E.g. <b>0_</b>neite.png, <b>3_</b>bob.png, #<b>0</b> being the first post and #<b>1</b>, #<b>2</b> having no downloadable items</small></label>
+                            </div>
+                        </div>
                     </div>
+                </div>
+                <div class="ui tab" data-tab="third">
                     <div class="field">
-                        <input id="restrictByScoreValueInput" type="number" min="0" value="100" disabled>
+                        <label for="searchFilterInput">Search Text</label>
+                        <input id="searchFilterInput" type="text">
+                    </div>
+        
+                    <div class="ui segment">
+                        <div class="field">
+                            <div class="ui toggle checkbox">
+                                <input class="hidden" id="restrictByScoreInput" type="checkbox">
+                                <label>Restrict downloads by post score</label>
+                            </div>
+                        </div>
+                        <div class="two fields">
+                            <div class="field">
+                                <select class="ui search disabled dropdown" id="restrictByScoreTypeInput">
+                                    <option value="ge">Greater Than or Equal To</option>
+                                    <option value="le">Less Than or Equal To</option>
+                                </select>
+                            </div>
+                            <div class="field">
+                                <input id="restrictByScoreValueInput" type="number" min="0" value="100" disabled>
+                            </div>
+                        </div>
                     </div>
                 </div>
-            </div>
-
-            <h3 class="ui header">Misc</h3>
-
-            <div class="ui segment">
-                <div class="field">
-                    <div class="ui toggle checkbox">
-                        <input class="hidden" id="includeAsLinkInput" type="checkbox" checked>
-                        <label>Include item as link if it couldn't be downloaded</label>
+                <div class="ui tab" data-tab="fourth">
+                    <div class="ui segment">
+                        <div class="field">
+                            <div class="ui toggle checkbox">
+                                <input class="hidden" id="includeAsLinkInput" type="checkbox" checked>
+                                <label>Include item as link if it couldn't be downloaded</label>
+                            </div>
+                        </div>
                     </div>
-                </div>
-            </div>
-
-            <div class="ui segment">
-                <div class="field">
-                    <div class="ui toggle checkbox">
-                        <input class="hidden" id="includeNsfwInput" type="checkbox">
-                        <label>Include material marked as NSFW (Not Safe For Work)</label>
+        
+                    <div class="ui segment">
+                        <div class="field">
+                            <div class="ui toggle checkbox">
+                                <input class="hidden" id="includeNsfwInput" type="checkbox">
+                                <label>Include material marked as NSFW (Not Safe For Work)</label>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>

@@ -34,6 +34,7 @@ var zip;
 $(document).ready(function() {
     setRandomNamePlaceholder();
 
+    $(".ui.menu .item").tab();
     $(".ui.checkbox").checkbox();
     $("select.dropdown").dropdown();
 
