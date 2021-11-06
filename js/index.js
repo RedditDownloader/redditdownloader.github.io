@@ -19,6 +19,7 @@ var includeImages;
 var includeGifs;
 var includeVideos;
 var includeOthers;
+var includeNonReddit;
 var includeAsLink;
 var includeNsfw;
 
@@ -125,6 +126,7 @@ $("#downloadButton").click(function() {
         includeGifs = $("#includeGifsInput").parent().checkbox("is checked");
         includeVideos = $("#includeVideosInput").parent().checkbox("is checked");
         includeOthers = $("#includeOthersInput").parent().checkbox("is checked");
+        includeNonReddit = $("#includeNonRedditInput").parent().checkbox("is checked");
         includeAsLink = $("#includeAsLinkInput").parent().checkbox("is checked");
         includeNsfw = $("#includeNsfwInput").parent().checkbox("is checked");
 
@@ -270,6 +272,11 @@ function download(anchor) {
                     continue;
                 }
 
+                 /* Continue if link links to Gfycat and we're not including anything that you can get from Gfycat */
+                 if (!includeGifs && !includeVideos && (url.startsWith("http://gfycat.com/") || url.startsWith("https://gfycat.com/"))) {
+                    continue;
+                }
+
                 var postIdx = postCount++;
 
                 if (isDirectImageUrl(url) || isDirectVideoUrl(url) || isDirectGifUrl(url)) {
@@ -289,7 +296,7 @@ function download(anchor) {
 
                     toDownloadCount++;
                     downloadUrl(videoUrl, post, postIdx);
-                } else if (url.startsWith("http://imgur.com/a/") || url.startsWith("https://imgur.com/a/")) {
+                } else if (includeNonReddit && (url.startsWith("http://imgur.com/a/") || url.startsWith("https://imgur.com/a/"))) {
                     /* Handle downloading an album */
                     var imageName = url.substring(url.lastIndexOf("/") + 1);
 
@@ -333,7 +340,7 @@ function download(anchor) {
                             }
                         }
                     });
-                } else if (url.startsWith("http://imgur.com/") || url.startsWith("https://imgur.com/")) {
+                } else if (includeNonReddit && (url.startsWith("http://imgur.com/") || url.startsWith("https://imgur.com/"))) {
                     /* Handle downloading a single-image album */
                     toDownloadCount++;
 
@@ -367,6 +374,49 @@ function download(anchor) {
                             if (error.status !== 404) {
                                 doneDownloading();
                                 alert("Accessing the Imgur API failed!\nPlease contact the developer.\nResponse code: " 
+                                    + error.status + "\nResponse: " + error.responseText);
+                            }
+                            toDownloadCount--;
+                        }
+                    });
+                } else if (includeNonReddit && (url.startsWith("http://gfycat.com") || url.startsWith("https://gfycat.com"))) {
+                    toDownloadCount++;
+
+                    var gfycatName = url.substring(url.lastIndexOf("/") + 1);
+
+                    $.ajax({
+                        url: "https://api.gfycat.com/v1/gfycats/" + gfycatName,
+                        type: "GET",
+                        dataType: "json",
+                        contentType: "application/json; charset=utf-8",
+                        post: post, // pass to success function
+                        postIdx: postIdx, // pass to success function
+                        success: function(result, status, xhr) {
+                            var gfyItem = result.gfyItem;
+                            if (!gfyItem) {
+                                console.log("Error: gfyItem missing in Gfycat API response for '" + url + "'");
+                                toDownloadCount--;
+                                return;
+                            }
+                            if (!includeNsfw && gfyItem.nsfw) {
+                                toDownloadCount--;
+                                return;
+                            }
+                            var url;
+                            if (includeVideos) {
+                                url = gfyItem.mp4Url;
+                            } else if (includeGifs) {
+                                url = gfyItem.gifUrl;
+                            } else {
+                                toDownloadCount--;
+                                return;
+                            }
+                            downloadUrl(url, this.post, this.postIdx);
+                        },
+                        error: function(error) {
+                            if (error.status !== 404) {
+                                doneDownloading();
+                                alert("Accessing the Gfycat API failed!\nPlease contact the developer.\nResponse code: " 
                                     + error.status + "\nResponse: " + error.responseText);
                             }
                             toDownloadCount--;
