@@ -370,7 +370,8 @@ function downloadPost(post) {
     } else if (url.indexOf("v.redd.it/") !== -1) {
         /* Handle Reddit video link */
         downloadRedditVideo(url, post, postIdx);
-    } else if (includeNonReddit && (url.startsWith("http://imgur.com/a/") || url.startsWith("https://imgur.com/a/"))) {
+    } else if (includeNonReddit && (url.startsWith("http://imgur.com/a/") || url.startsWith("https://imgur.com/a/") 
+                                    || url.startsWith("http://imgur.com/gallery/") || url.startsWith("https://imgur.com/gallery/"))) {
         /* Handle downloading an album */
         downloadImgurAlbum(url, post, postIdx);
     } else if (includeNonReddit && (url.startsWith("http://imgur.com/") || url.startsWith("https://imgur.com/"))) {
