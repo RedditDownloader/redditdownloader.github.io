@@ -676,7 +676,7 @@ function getFileExtension(url) {
 }
 
 function getFileNameWithExtension(url) {
-    const regex = /[^/\\&\?]+\.\w{3,4}(?=[\?&].*$|$)/;
+    const regex = /[^/\\&\?]+\.\w{1,}(?=[\?&].*$|$)/;
     const m = regex.exec(url);
     return m[0];
 }
