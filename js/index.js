@@ -228,10 +228,6 @@ function download(anchor) {
             var children = result.data.children;
 
             for (var i = 0; i < children.length; i++) {
-                if (toDownloadCount >= maxImageCount) { 
-                    break; 
-                }
-
                 var post = children[i].data;
                 var url = post.url;
 
