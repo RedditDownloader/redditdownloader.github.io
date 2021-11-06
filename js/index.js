@@ -353,12 +353,12 @@ function downloadPost(post) {
     }
 
     /* Continue if link links to Imgur and we're not including anything that you can get from Imgur */
-    if (!includeGifs && !includeVideos && !includeImages && (url.startsWith("http://imgur.com/") || url.startsWith("https://imgur.com/"))) {
+    if (!includeGifs && !includeVideos && !includeImages && isImgurUrl(url)) {
         return;
     }
 
     /* Continue if link links to Gfycat and we're not including anything that you can get from Gfycat */
-    if (!includeGifs && !includeVideos && (url.startsWith("http://gfycat.com/") || url.startsWith("https://gfycat.com/"))) {
+    if (!includeGifs && !includeVideos && isGfycatUrl(url)) {
         return;
     }
 
@@ -367,22 +367,43 @@ function downloadPost(post) {
     if (isDirectImageUrl(url) || isDirectVideoUrl(url) || isDirectGifUrl(url)) {
         /* Handle item with extension (direct link) */
         downloadDirectFile(url, post, postIdx);
-    } else if (url.indexOf("v.redd.it/") !== -1) {
+    } else if (isRedditVideoUrl(url)) {
         /* Handle Reddit video link */
         downloadRedditVideo(url, post, postIdx);
-    } else if (includeNonReddit && (url.startsWith("http://imgur.com/a/") || url.startsWith("https://imgur.com/a/") 
-                                    || url.startsWith("http://imgur.com/gallery/") || url.startsWith("https://imgur.com/gallery/"))) {
+    } else if (includeNonReddit && isImgurAlbumOrGalleryUrl(url)) {
         /* Handle downloading an album */
         downloadImgurAlbum(url, post, postIdx);
-    } else if (includeNonReddit && (url.startsWith("http://imgur.com/") || url.startsWith("https://imgur.com/"))) {
+    } else if (includeNonReddit && isImgurSingleImageAlbumUrl(url)) {
         /* Handle downloading a single-image album */
         downloadSingleImageImgurAlbum(url, post, postIdx);
-    } else if (includeNonReddit && (url.startsWith("http://gfycat.com") || url.startsWith("https://gfycat.com"))) {
+    } else if (includeNonReddit && isGfycatUrl(url)) {
         downloadGfycat(url, post, postIdx);
     } else if (includeOthers) {
         /* Handle downloading direct files with non-image/video extensions */
         downloadUnknownDirectFile(url, post, postIdx);
     }
+}
+
+function isImgurUrl(url) {
+    return url.startsWith("http://imgur.com/") || url.startsWith("https://imgur.com/");
+}
+
+function isGfycatUrl(url) {
+    return url.startsWith("http://gfycat.com/") || url.startsWith("https://gfycat.com/");
+}
+
+function isRedditVideoUrl(url) {
+    return url.startsWith("http://v.redd.it/") || url.startsWith("https://v.redd.it/");
+}
+
+function isImgurAlbumOrGalleryUrl(url) {
+    return url.startsWith("http://imgur.com/a/") || url.startsWith("https://imgur.com/a/") 
+        || url.startsWith("http://imgur.com/gallery/") || url.startsWith("https://imgur.com/gallery/");
+}
+
+function isImgurSingleImageAlbumUrl(url) {
+    return (url.startsWith("http://imgur.com/") || url.startsWith("https://imgur.com/"))
+        && !isImgurAlbumOrGalleryUrl(url);
 }
 
 function downloadDirectFile(url, post, postIdx) {
