@@ -253,274 +253,305 @@ function download(anchor) {
         type: "GET",
         dataType: "json",
         contentType: "application/json; charset=utf-8",
-        success: function(result, status, xhr) {
-            /* Make sure we haven't been redirected to the search page = subreddit doesn't exist */
-            if (!userDownload && !searchFilter && result.data.dist === 0 && typeof anchor === "undefined") {
-                $("#unknownNameErrorBox").show();
+        success: downloadSucceeded,
+        error: downloadFailed
+    });
+}
+
+function downloadSucceeded(result, status, xhr) {
+    /* Make sure we haven't been redirected to the search page = subreddit doesn't exist */
+    if (!userDownload && !searchFilter && result.data.dist === 0 && typeof anchor === "undefined") {
+        $("#unknownNameErrorBox").show();
+        doneDownloading();
+        return;
+    }
+
+    var children = result.data.children;
+
+    for (var i = 0; i < children.length; i++) {
+        var post = children[i].data;
+        downloadPost(post);
+        if (postCount == maxPostCount) {
+            console.log("Info: reached postCount = maxPostCount, will stop iterating over posts");
+            break;
+        }
+    }
+
+    if (children.length === 0 || postCount >= maxPostCount || result.data.after === null) {
+        console.log("Info: will start waiting for pending downloads to complete now");
+
+        checkFinishedInterval = setInterval(function() {
+            if (downloadedCount === toDownloadCount) {
                 doneDownloading();
+            }
+        }, CHECK_DOWNLOADS_FINISHED_EVERY_MS);
+    } else {
+        download(result.data.after);
+    }
+}
+
+function downloadPost(post) {
+    var url = post.url;
+
+    /* Only download if there's a URL */
+    if (url == null) {
+        return;
+    }
+
+    /* Respect user's nsfw option */
+    if (!includeNsfw && post.over_18) {
+        return;
+    }
+
+    /* Don't download images that come from posts with greater/less score than inputted */
+    if (restrictByScore) {
+        if ((restrictByScoreType === "ge" && post.score < restrictByScoreValue)
+                || (restrictByScoreType === "le" && post.score > restrictByScoreValue)) {
+            return;
+        } 
+    }
+
+    /* Continue if direct url is a gif and user doesn't want to download gifs */
+    if (!includeGifs && isDirectGifUrl(url)) {
+        return;
+    }
+
+    /* Continue if post links to a video and user doesn't want to download videos */
+    if (!includeVideos && (post.is_video || isDirectVideoUrl(url))) {
+        return;
+    }
+
+    /* Continue if direct url is an image and user doesn't want to download images */
+    if (!includeImages && isDirectImageUrl(url)) {
+        return;
+    }
+
+    /* Continue if link links to Imgur and we're not including anything that you can get from Imgur */
+    if (!includeGifs && !includeVideos && !includeImages && (url.startsWith("http://imgur.com/") || url.startsWith("https://imgur.com/"))) {
+        return;
+    }
+
+    /* Continue if link links to Gfycat and we're not including anything that you can get from Gfycat */
+    if (!includeGifs && !includeVideos && (url.startsWith("http://gfycat.com/") || url.startsWith("https://gfycat.com/"))) {
+        return;
+    }
+
+    var postIdx = postCount++;
+
+    if (isDirectImageUrl(url) || isDirectVideoUrl(url) || isDirectGifUrl(url)) {
+        /* Handle item with extension (direct link) */
+        downloadDirectFile(url, post, postIdx);
+    } else if (url.indexOf("v.redd.it/") !== -1) {
+        /* Handle Reddit video link */
+        downloadRedditVideo(url, post, postIdx);
+    } else if (includeNonReddit && (url.startsWith("http://imgur.com/a/") || url.startsWith("https://imgur.com/a/"))) {
+        /* Handle downloading an album */
+        downloadImgurAlbum(url, post, postIdx);
+    } else if (includeNonReddit && (url.startsWith("http://imgur.com/") || url.startsWith("https://imgur.com/"))) {
+        /* Handle downloading a single-image album */
+        downloadSingleImageImgurAlbum(url, post, postIdx);
+    } else if (includeNonReddit && (url.startsWith("http://gfycat.com") || url.startsWith("https://gfycat.com"))) {
+        downloadGfycat(url, post, postIdx);
+    } else if (includeOthers) {
+        /* Handle downloading direct files with non-image/video extensions */
+        downloadUnknownDirectFile(url, post, postIdx);
+    }
+}
+
+function downloadDirectFile(url, post, postIdx) {
+    toDownloadCount++;
+    downloadUrl(url, post, postIdx);
+}
+
+function downloadRedditVideo(url, post, postIdx) {
+    if (!post.media || !post.media.reddit_video || !post.media.reddit_video.fallback_url) {
+        console.log("Error: v.redd.it post (" + url + ") did not have an associated media object");
+        return;
+    }
+
+    var videoUrl = post.media.reddit_video.fallback_url;
+    // TODO: Add the audio track to the video
+    //var audioUrl = videoUrl.replace(/(\d)+\.mp4/, 'audio.mp4');
+
+    toDownloadCount++;
+    downloadUrl(videoUrl, post, postIdx);
+}
+
+function downloadImgurAlbum(url, post, postIdx) {
+    toDownloadCount++;
+
+    var imageName = url.substring(url.lastIndexOf("/") + 1);
+
+    $.ajax({
+        url: "https://api.imgur.com/3/album/" + imageName,
+        type: "GET",
+        dataType: "json",
+        contentType: "application/json; charset=utf-8",
+        headers: {
+            "authorization": "Client-ID 326b1cb24da9d5e"
+        },
+        post: post, // pass to success function
+        postIdx: postIdx, // pass to success function
+        success: function(result, status, xhr) {
+            var data = result.data;
+            if (!data) {
+                console.log("Error: data missing in Imgur API response for '" + url + "'");
+                toDownloadCount--;
                 return;
             }
-
-            var children = result.data.children;
-
-            for (var i = 0; i < children.length; i++) {
-                var post = children[i].data;
-                var url = post.url;
-
-                /* Only download if there's a URL */
-                if (url == null) {
-                    continue;
-                }
-
-                /* Respect user's nsfw option */
-                if (!includeNsfw && post.over_18) {
-                    continue;
-                }
-
-                /* Don't download images that come from posts with greater/less score than inputted */
-                if (restrictByScore) {
-                    if ((restrictByScoreType === "ge" && post.score < restrictByScoreValue)
-                            || (restrictByScoreType === "le" && post.score > restrictByScoreValue)) {
-                        continue;
-                    } 
-                }
-
-                /* Continue if direct url is a gif and user doesn't want to download gifs */
-                if (!includeGifs && isDirectGifUrl(url)) {
-                    continue;
-                }
-
-                /* Continue if post links to a video and user doesn't want to download videos */
-                if (!includeVideos && (post.is_video || isDirectVideoUrl(url))) {
-                    continue;
-                }
-
-                /* Continue if direct url is an image and user doesn't want to download images */
-                if (!includeImages && isDirectImageUrl(url)) {
-                    continue;
-                }
-
-                /* Continue if link links to Imgur and we're not including anything that you can get from Imgur */
-                if (!includeGifs && !includeVideos && !includeImages && (url.startsWith("http://imgur.com/") || url.startsWith("https://imgur.com/"))) {
-                    continue;
-                }
-
-                 /* Continue if link links to Gfycat and we're not including anything that you can get from Gfycat */
-                 if (!includeGifs && !includeVideos && (url.startsWith("http://gfycat.com/") || url.startsWith("https://gfycat.com/"))) {
-                    continue;
-                }
-
-                var postIdx = postCount++;
-
-                if (isDirectImageUrl(url) || isDirectVideoUrl(url) || isDirectGifUrl(url)) {
-                    /* Handle item with extension (direct link) */
-                    toDownloadCount++;
-                    downloadUrl(url, post, postIdx);
-                } else if (url.indexOf("v.redd.it/") !== -1) {
-                    /* Handle Reddit video link */
-                    if (!post.media || !post.media.reddit_video || !post.media.reddit_video.fallback_url) {
-                        console.log("Error: v.redd.it post (" + url + ") did not have an associated media object");
-                        continue;
-                    }
-
-                    var videoUrl = post.media.reddit_video.fallback_url;
-                    // TODO: Add the audio track to the video
-                    //var audioUrl = videoUrl.replace(/(\d)+\.mp4/, 'audio.mp4');
-
-                    toDownloadCount++;
-                    downloadUrl(videoUrl, post, postIdx);
-                } else if (includeNonReddit && (url.startsWith("http://imgur.com/a/") || url.startsWith("https://imgur.com/a/"))) {
-                    /* Handle downloading an album */
-                    toDownloadCount++;
-
-                    var imageName = url.substring(url.lastIndexOf("/") + 1);
-
-                    $.ajax({
-                        url: "https://api.imgur.com/3/album/" + imageName,
-                        type: "GET",
-                        dataType: "json",
-                        contentType: "application/json; charset=utf-8",
-                        headers: {
-                            "authorization": "Client-ID 326b1cb24da9d5e"
-                        },
-                        post: post, // pass to success function
-                        postIdx: postIdx, // pass to success function
-                        success: function(result, status, xhr) {
-                            var data = result.data;
-                            if (!data) {
-                                console.log("Error: data missing in Imgur API response for '" + url + "'");
-                                toDownloadCount--;
-                                return;
-                            }
-                            if (!includeNsfw && data.nsfw) {
-                                toDownloadCount--;
-                                return;
-                            }
-                            var images = data.images;
-                            for (var i = 0; i < images.length; i++) {
-                                var image = images[i];
-                                if (!includeNsfw && image.nsfw) {
-                                    continue;
-                                }
-                                var url = image.link;
-                                if (!includeGifs && isDirectGifUrl(url)
-                                    || !includeVideos && isDirectVideoUrl(url)
-                                    || !includeImages && isDirectImageUrl(url)) {
-                                    continue;
-                                }
-                                toDownloadCount++;
-                                downloadUrl(url, this.post, this.postIdx);
-                            }
-                            toDownloadCount--; /* Important that this is done at the end */
-                        },
-                        error: function(error) {
-                            if (error.status !== 404) {
-                                doneDownloading();
-                                alert("Accessing the Imgur API failed!\nPlease contact the developer.\nResponse code: " 
-                                    + error.status + "\nResponse: " + error.responseText);
-                            }
-                            toDownloadCount--;
-                        }
-                    });
-                } else if (includeNonReddit && (url.startsWith("http://imgur.com/") || url.startsWith("https://imgur.com/"))) {
-                    /* Handle downloading a single-image album */
-                    toDownloadCount++;
-
-                    var imageName = url.substring(url.lastIndexOf("/") + 1);
-
-                    $.ajax({
-                        url: "https://api.imgur.com/3/image/" + imageName,
-                        type: "GET",
-                        dataType: "json",
-                        contentType: "application/json; charset=utf-8",
-                        headers: {
-                            "authorization": "Client-ID 326b1cb24da9d5e"
-                        },
-                        post: post, // pass to success function
-                        postIdx: postIdx, // pass to success function
-                        success: function(result, status, xhr) {
-                            var data = result.data;
-                            if (!data) {
-                                console.log("Error: data missing in Imgur API response for '" + url + "'");
-                                toDownloadCount--;
-                                return;
-                            }
-                            if (!includeNsfw && data.nsfw) {
-                                toDownloadCount--;
-                                return;
-                            }
-                            var url = data.link;
-                            if (!includeGifs && isDirectGifUrl(url)
-                                || !includeVideos && isDirectVideoUrl(url)
-                                || !includeImages && isDirectImageUrl(url)) {
-                                toDownloadCount--;
-                                return;
-                            }
-                            downloadUrl(url, this.post, this.postIdx);
-                        },
-                        error: function(error) {
-                            if (error.status !== 404) {
-                                doneDownloading();
-                                alert("Accessing the Imgur API failed!\nPlease contact the developer.\nResponse code: " 
-                                    + error.status + "\nResponse: " + error.responseText);
-                            }
-                            toDownloadCount--;
-                        }
-                    });
-                } else if (includeNonReddit && (url.startsWith("http://gfycat.com") || url.startsWith("https://gfycat.com"))) {
-                    toDownloadCount++;
-
-                    var gfycatName = url.substring(url.lastIndexOf("/") + 1);
-
-                    $.ajax({
-                        url: "https://api.gfycat.com/v1/gfycats/" + gfycatName,
-                        type: "GET",
-                        dataType: "json",
-                        contentType: "application/json; charset=utf-8",
-                        post: post, // pass to success function
-                        postIdx: postIdx, // pass to success function
-                        success: function(result, status, xhr) {
-                            var gfyItem = result.gfyItem;
-                            if (!gfyItem) {
-                                console.log("Error: gfyItem missing in Gfycat API response for '" + url + "'");
-                                toDownloadCount--;
-                                return;
-                            }
-                            if (!includeNsfw && gfyItem.nsfw) {
-                                toDownloadCount--;
-                                return;
-                            }
-                            var url;
-                            if (includeVideos) {
-                                url = gfyItem.mp4Url;
-                            } else if (includeGifs) {
-                                url = gfyItem.gifUrl;
-                            } else {
-                                toDownloadCount--;
-                                return;
-                            }
-                            downloadUrl(url, this.post, this.postIdx);
-                        },
-                        error: function(error) {
-                            if (error.status !== 404) {
-                                doneDownloading();
-                                alert("Accessing the Gfycat API failed!\nPlease contact the developer.\nResponse code: " 
-                                    + error.status + "\nResponse: " + error.responseText);
-                            }
-                            toDownloadCount--;
-                        }
-                    });
-                } else if (includeOthers) {
-                    /* Handle downloading direct files with non-image/video extensions */
-                    try {
-                        getFileExtension(url);
-                    } catch (error) {
-                        console.log("Info: '" + url + "' was not a direct URL, skipping download..");
-                        continue;
-                    }
-                    toDownloadCount++;
-                    downloadUrl(url, post, postIdx);
-                }
-
-                if (postCount == maxPostCount) {
-                    console.log("Info: reached postCount = maxPostCount, will stop iterating over posts");
-                    break;
-                }
+            if (!includeNsfw && data.nsfw) {
+                toDownloadCount--;
+                return;
             }
-
-            if (children.length === 0 || postCount >= maxPostCount || result.data.after === null) {
-                console.log("Info: will start waiting for pending downloads to complete now");
-
-                checkFinishedInterval = setInterval(function() {
-                    if (downloadedCount === toDownloadCount) {
-                        doneDownloading();
-                    }
-                }, CHECK_DOWNLOADS_FINISHED_EVERY_MS);
-            } else {
-                download(result.data.after);
+            var images = data.images;
+            for (var i = 0; i < images.length; i++) {
+                var image = images[i];
+                if (!includeNsfw && image.nsfw) {
+                    continue;
+                }
+                var url = image.link;
+                if (!includeGifs && isDirectGifUrl(url)
+                    || !includeVideos && isDirectVideoUrl(url)
+                    || !includeImages && isDirectImageUrl(url)) {
+                    continue;
+                }
+                toDownloadCount++;
+                downloadUrl(url, this.post, this.postIdx);
             }
+            toDownloadCount--; /* Important that this is done at the end */
         },
         error: function(error) {
-            if (error.status === 404 || error.status === 403) {
-                /* If HTTP status is 404 or 403, the subreddit probably doesn't exist */
-                $("#unknownNameErrorBox").show();
+            if (error.status !== 404) {
                 doneDownloading();
-            } else if (error.status == 0) {
-                /* The response body is likely too large for the CORS proxy, retry with fewer posts */
-                maxPostsPerRequest = Math.ceil(maxPostsPerRequest * RETRY_POSTS_FACTOR);
-                if (maxPostsPerRequest >= MIN_POSTS_PER_REQUEST) {
-                    download(anchor);
-                } else {
-                    alert("Retried retrieval of Reddit posts too many times, are you connected to the Internet?");
-                    doneDownloading();
-                }
-            } else if (error.status !== 200) {
-                /* Notify user when a non-handled status code is received */
-                alert("Unknown error " + JSON.stringify(error) + " received from lookup request.\nPlease contact the developer.");
-                doneDownloading();
+                alert("Accessing the Imgur API failed!\nPlease contact the developer.\nResponse code: " 
+                    + error.status + "\nResponse: " + error.responseText);
             }
+            toDownloadCount--;
         }
     });
+}
+
+function downloadSingleImageImgurAlbum(url, post, postIdx) {
+    toDownloadCount++;
+
+    var imageName = url.substring(url.lastIndexOf("/") + 1);
+
+    $.ajax({
+        url: "https://api.imgur.com/3/image/" + imageName,
+        type: "GET",
+        dataType: "json",
+        contentType: "application/json; charset=utf-8",
+        headers: {
+            "authorization": "Client-ID 326b1cb24da9d5e"
+        },
+        post: post, // pass to success function
+        postIdx: postIdx, // pass to success function
+        success: function(result, status, xhr) {
+            var data = result.data;
+            if (!data) {
+                console.log("Error: data missing in Imgur API response for '" + url + "'");
+                toDownloadCount--;
+                return;
+            }
+            if (!includeNsfw && data.nsfw) {
+                toDownloadCount--;
+                return;
+            }
+            var url = data.link;
+            if (!includeGifs && isDirectGifUrl(url)
+                || !includeVideos && isDirectVideoUrl(url)
+                || !includeImages && isDirectImageUrl(url)) {
+                toDownloadCount--;
+                return;
+            }
+            downloadUrl(url, this.post, this.postIdx);
+        },
+        error: function(error) {
+            if (error.status !== 404) {
+                doneDownloading();
+                alert("Accessing the Imgur API failed!\nPlease contact the developer.\nResponse code: " 
+                    + error.status + "\nResponse: " + error.responseText);
+            }
+            toDownloadCount--;
+        }
+    });
+}
+
+function downloadGfycat(url, post, postIdx) {
+    toDownloadCount++;
+
+    var gfycatName = url.substring(url.lastIndexOf("/") + 1);
+
+    $.ajax({
+        url: "https://api.gfycat.com/v1/gfycats/" + gfycatName,
+        type: "GET",
+        dataType: "json",
+        contentType: "application/json; charset=utf-8",
+        post: post, // pass to success function
+        postIdx: postIdx, // pass to success function
+        success: function(result, status, xhr) {
+            var gfyItem = result.gfyItem;
+            if (!gfyItem) {
+                console.log("Error: gfyItem missing in Gfycat API response for '" + url + "'");
+                toDownloadCount--;
+                return;
+            }
+            if (!includeNsfw && gfyItem.nsfw) {
+                toDownloadCount--;
+                return;
+            }
+            var url;
+            if (includeVideos) {
+                url = gfyItem.mp4Url;
+            } else if (includeGifs) {
+                url = gfyItem.gifUrl;
+            } else {
+                toDownloadCount--;
+                return;
+            }
+            downloadUrl(url, this.post, this.postIdx);
+        },
+        error: function(error) {
+            if (error.status !== 404) {
+                doneDownloading();
+                alert("Accessing the Gfycat API failed!\nPlease contact the developer.\nResponse code: " 
+                    + error.status + "\nResponse: " + error.responseText);
+            }
+            toDownloadCount--;
+        }
+    });
+}
+
+function downloadUnknownDirectFile(url, post, postIdx) {
+    try {
+        getFileExtension(url);
+    } catch (error) {
+        console.log("Info: '" + url + "' was not a direct URL, skipping download..");
+        return;
+    }
+    toDownloadCount++;
+    downloadUrl(url, post, postIdx);
+}
+
+function downloadFailed(error) {
+    if (error.status === 404 || error.status === 403) {
+        /* If HTTP status is 404 or 403, the subreddit probably doesn't exist */
+        $("#unknownNameErrorBox").show();
+        doneDownloading();
+    } else if (error.status == 0) {
+        /* The response body is likely too large for the CORS proxy, retry with fewer posts */
+        maxPostsPerRequest = Math.ceil(maxPostsPerRequest * RETRY_POSTS_FACTOR);
+        if (maxPostsPerRequest >= MIN_POSTS_PER_REQUEST) {
+            download(anchor);
+        } else {
+            alert("Retried retrieval of Reddit posts too many times, are you connected to the Internet?");
+            doneDownloading();
+        }
+    } else if (error.status !== 200) {
+        /* Notify user when a non-handled status code is received */
+        alert("Unknown error " + JSON.stringify(error) + " received from lookup request.\nPlease contact the developer.");
+        doneDownloading();
+    }
 }
 
 function downloadUrl(url, post, postIdx) {
