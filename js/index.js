@@ -8,7 +8,7 @@ var RETRY_POSTS_FACTOR = 0.7;
 var userDownload;
 var targetName;
 var section;
-var maxImageCount;
+var maxPostCount;
 var maxPostsPerRequest;
 var nameFormat;
 var prependOrderIndex;
@@ -50,7 +50,7 @@ $(document).ready(function() {
         .form({
             fields: {
                 targetNameInput : "empty",
-                imageAmountInput : "integer[0..]",
+                downloadAmountInput : "integer[0..]",
                 restrictByScoreValueInput : "integer[0..]",
                 includeImagesInput : "includeAny",
                 includeGifsInput : "includeAny",
@@ -162,7 +162,7 @@ $("#downloadButton").click(function() {
         }
 
         /* Find images to scrape and start downloading */
-        maxImageCount = $("#imageAmountInput").val();
+        maxPostCount = $("#downloadAmountInput").val();
         maxPostsPerRequest = MAX_POSTS_PER_REQUEST;
         updateUI();
         download();
@@ -175,7 +175,7 @@ $("#cancelDownloadButton").click(function() {
 
 function updateUI() {
     $("#downloadedCountText").text(downloadedCount);
-    $("#toDownloadCountText").text(Math.min(toDownloadCount, maxImageCount));
+    $("#toDownloadCountText").text(toDownloadCount);
     $("#downloadedSizeText").text(Math.ceil(downloadedBytes / 1048576.0));
 }
 
@@ -185,27 +185,27 @@ function download(anchor) {
     }
 
     /* Max MAX_POSTS_PER_REQUEST posts per request */
-    var maxImageCountNow = Math.min(maxImageCount - toDownloadCount, maxPostsPerRequest);
+    var maxPostCountNow = Math.min(maxPostCount, maxPostsPerRequest);
 
-    /* Prevent extreme amounts of requests in the case that maxImageCountNow is for example 1 */
-    if (maxImageCountNow < MIN_POSTS_PER_REQUEST) {
-        maxImageCountNow = MIN_POSTS_PER_REQUEST;
+    /* Prevent extreme amounts of requests in the case that maxPostCountNow is for example 1 */
+    if (maxPostCountNow < MIN_POSTS_PER_REQUEST) {
+        maxPostCountNow = MIN_POSTS_PER_REQUEST;
     }
 
     var url;
 
     if (userDownload) {
         url = "https://www.reddit.com/user/" + targetName
-            + ".json?limit=" + maxImageCountNow
+            + ".json?limit=" + maxPostCountNow
             + (anchor !== undefined ? "&after=" + anchor : "");
     } else if (searchFilter) {
         url = "https://www.reddit.com/r/" + targetName
-            + "/search.json?q=" + searchFilter + "&restrict_sr=on&limit=" + maxImageCountNow
+            + "/search.json?q=" + searchFilter + "&restrict_sr=on&limit=" + maxPostCountNow
             + (includeNsfw ? "&include_over_18=on" : "")
             + (anchor !== undefined ? "&after=" + anchor : "");
     } else {
         url = "https://www.reddit.com/r/" + targetName
-            + "/" + section + ".json?limit=" + maxImageCountNow
+            + "/" + section + ".json?limit=" + maxPostCountNow
             + (anchor !== undefined ? "&after=" + anchor : "");
     }
     if (sectionTimespan) {
@@ -295,6 +295,8 @@ function download(anchor) {
                     downloadUrl(videoUrl, post, postIdx);
                 } else if (includeNonReddit && (url.startsWith("http://imgur.com/a/") || url.startsWith("https://imgur.com/a/"))) {
                     /* Handle downloading an album */
+                    toDownloadCount++;
+
                     var imageName = url.substring(url.lastIndexOf("/") + 1);
 
                     $.ajax({
@@ -311,9 +313,11 @@ function download(anchor) {
                             var data = result.data;
                             if (!data) {
                                 console.log("Error: data missing in Imgur API response for '" + url + "'");
+                                toDownloadCount--;
                                 return;
                             }
                             if (!includeNsfw && data.nsfw) {
+                                toDownloadCount--;
                                 return;
                             }
                             var images = data.images;
@@ -331,6 +335,7 @@ function download(anchor) {
                                 toDownloadCount++;
                                 downloadUrl(url, this.post, this.postIdx);
                             }
+                            toDownloadCount--; /* Important that this is done at the end */
                         },
                         error: function(error) {
                             if (error.status !== 404) {
@@ -338,6 +343,7 @@ function download(anchor) {
                                 alert("Accessing the Imgur API failed!\nPlease contact the developer.\nResponse code: " 
                                     + error.status + "\nResponse: " + error.responseText);
                             }
+                            toDownloadCount--;
                         }
                     });
                 } else if (includeNonReddit && (url.startsWith("http://imgur.com/") || url.startsWith("https://imgur.com/"))) {
@@ -439,21 +445,18 @@ function download(anchor) {
                     toDownloadCount++;
                     downloadUrl(url, post, postIdx);
                 }
+
+                if (postCount == maxPostCount) {
+                    console.log("Info: reached postCount = maxPostCount, will stop iterating over posts");
+                    break;
+                }
             }
 
-            if (children.length === 0 || toDownloadCount >= maxImageCount || result.data.after === null) {
+            if (children.length === 0 || postCount >= maxPostCount || result.data.after === null) {
                 console.log("Info: will start waiting for pending downloads to complete now");
 
-                var reasonWasMaxImageCount = toDownloadCount >= maxImageCount;
-
                 checkFinishedInterval = setInterval(function() {
-                    if (reasonWasMaxImageCount && toDownloadCount < maxImageCount) {
-                        // this happens if an image has failed to download
-                        // and we need to try to download more images
-                        console.log("Warn: an item has failed downloading while waiting for pending downloads to complete, will start looking for more posts");
-                        clearInterval(checkFinishedInterval);
-                        download(result.data.after);
-                    } else if (downloadedCount === toDownloadCount) {
+                    if (downloadedCount === toDownloadCount) {
                         doneDownloading();
                     }
                 }, CHECK_DOWNLOADS_FINISHED_EVERY_MS);
@@ -485,11 +488,6 @@ function download(anchor) {
 }
 
 function downloadUrl(url, post, postIdx) {
-    if (downloadedCount >= maxImageCount) {
-        console.log("Info: was about to queue '" + url + "' for downloading, but the max image count was already reached, so it will be skipped");
-        toDownloadCount--;
-        return;
-    }
     console.log("Info: queueing '" + url + "' for download while downloadedCount = " + downloadedCount + " and toDownloadCount = " + toDownloadCount);
     downloadFileAsBase64(url, 
         function(data) {
