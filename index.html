@@ -63,21 +63,6 @@
                 </div>
             </div>
 
-            <div class="two fields">
-                <div class="field">
-                    <label for="nameFormatInput">Name Downloads By</label>
-                    <select class="ui search dropdown" id="nameFormatInput">
-                        <option value="post-title">Post Title</option>
-                        <option value="post-id">Post ID</option>
-                        <option value="file-name">Downloaded File Name</option>
-                    </select>
-                </div>
-                <div class="field">
-                    <label for="imageAmountInput">Download Amount</label>
-                    <input id="imageAmountInput" type="number" step="5" min="5" value="20">
-                </div>
-            </div>
-
             <h3 class="ui header">File types</h3>
 
             <div class="ui segment">
@@ -117,6 +102,32 @@
                     <div class="ui toggle checkbox">
                         <input class="hidden" id="includeOthersInput" type="checkbox">
                         <label>Include other file types (zip/txt/..)</label>
+                    </div>
+                </div>
+            </div>
+
+            <h3 class="ui header">Naming and amount</h3>
+
+            <div class="two fields">
+                <div class="field">
+                    <label for="nameFormatInput">Name Downloads By</label>
+                    <select class="ui search dropdown" id="nameFormatInput">
+                        <option value="post-title">Post Title</option>
+                        <option value="post-id">Post ID</option>
+                        <option value="file-name">Downloaded File Name</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label for="imageAmountInput">Download Amount</label>
+                    <input id="imageAmountInput" type="number" step="5" min="5" value="20">
+                </div>
+            </div>
+
+            <div class="field">
+                <div class="ui segment">
+                    <div class="ui toggle checkbox">
+                        <input class="hidden" id="prependOrderIndexInput" type="checkbox">
+                        <label>Number downloads according to the order of posts<br><small>E.g. <b>0_</b>neite.png, <b>3_</b>bob.png, #<b>0</b> being the first post and #<b>1</b>, #<b>2</b> having no downloadable items</small></label>
                     </div>
                 </div>
             </div>

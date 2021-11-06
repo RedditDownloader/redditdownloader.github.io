@@ -11,6 +11,7 @@ var section;
 var maxImageCount;
 var maxPostsPerRequest;
 var nameFormat;
+var prependOrderIndex;
 var restrictByScore;
 var restrictByScoreType;
 var restrictByScoreValue;
@@ -25,6 +26,7 @@ var checkFinishedInterval;
 var downloadRequests = new Set();
 var downloadedCount;
 var toDownloadCount;
+var postCount;
 var downloadedBytes;
 var zip;
 
@@ -104,6 +106,7 @@ $("#downloadButton").click(function() {
         downloadRequests.clear();
         downloadedCount = 0;
         toDownloadCount = 0;
+        postCount = 0;
         downloadedBytes = 0;
         zip = new JSZip();
 
@@ -114,6 +117,7 @@ $("#downloadButton").click(function() {
         sectionTimespan = ""; // Set further down if section contains a timespan (eg. section is "top-week")
         searchFilter = $("#searchFilterInput").val();
         nameFormat = $("#nameFormatInput").val();
+        prependOrderIndex = $("#prependOrderIndexInput").parent().checkbox("is checked");
         restrictByScore = $("#restrictByScoreInput").parent().checkbox("is checked");
         restrictByScoreType = $("#restrictByScoreTypeInput").val();
         restrictByScoreValue = $("#restrictByScoreValueInput").val();
@@ -266,10 +270,12 @@ function download(anchor) {
                     continue;
                 }
 
+                var postIdx = postCount++;
+
                 if (isDirectImageUrl(url) || isDirectVideoUrl(url) || isDirectGifUrl(url)) {
                     /* Handle item with extension (direct link) */
                     toDownloadCount++;
-                    downloadUrl(url, post);
+                    downloadUrl(url, post, postIdx);
                 } else if (url.indexOf("v.redd.it/") !== -1) {
                     /* Handle Reddit video link */
                     if (!post.media || !post.media.reddit_video || !post.media.reddit_video.fallback_url) {
@@ -282,7 +288,7 @@ function download(anchor) {
                     //var audioUrl = videoUrl.replace(/(\d)+\.mp4/, 'audio.mp4');
 
                     toDownloadCount++;
-                    downloadUrl(videoUrl, post);
+                    downloadUrl(videoUrl, post, postIdx);
                 } else if (url.startsWith("http://imgur.com/a/") || url.startsWith("https://imgur.com/a/")) {
                     /* Handle downloading an album */
                     var imageName = url.substring(url.lastIndexOf("/") + 1);
@@ -296,6 +302,7 @@ function download(anchor) {
                             "authorization": "Client-ID 326b1cb24da9d5e"
                         },
                         post: post, // pass to success function
+                        postIdx: postIdx, // pass to success function
                         success: function(result, status, xhr) {
                             if (!includeNsfw && result.data.nsfw) {
                                 return;
@@ -315,7 +322,7 @@ function download(anchor) {
                                     continue;
                                 }
                                 toDownloadCount++;
-                                downloadUrl(url, this.post);
+                                downloadUrl(url, this.post, this.postIdx);
                             }
                         },
                         error: function(error) {
@@ -341,6 +348,7 @@ function download(anchor) {
                             "authorization": "Client-ID 326b1cb24da9d5e"
                         },
                         post: post, // pass to success function
+                        postIdx: postIdx, // pass to success function
                         success: function(result, status, xhr) {
                             if (!includeNsfw && result.data.nsfw) {
                                 return;
@@ -351,7 +359,7 @@ function download(anchor) {
                                 || !includeImages && isDirectImageUrl(url)) {
                                 return;
                             }
-                            downloadUrl(url, this.post);
+                            downloadUrl(url, this.post, this.postIdx);
                         },
                         error: function(error) {
                             if (error.status !== 404) {
@@ -371,7 +379,7 @@ function download(anchor) {
                         continue;
                     }
                     toDownloadCount++;
-                    downloadUrl(url, post);
+                    downloadUrl(url, post, postIdx);
                 }
             }
 
@@ -415,14 +423,14 @@ function download(anchor) {
     });
 }
 
-function downloadUrl(url, post) {
+function downloadUrl(url, post, postIdx) {
     if (downloadedCount >= maxImageCount) {
         toDownloadCount--;
         return;
     }
     downloadFileAsBase64(url, 
         function(data) {
-            var fileName = getFileNameForPost(url, post);
+            var fileName = getFileNameForPost(url, post, postIdx);
             var extension = getFileExtension(url);
             addFileToZip(fileName, extension, data, post, true);
             downloadedCount++;
@@ -436,7 +444,7 @@ function downloadUrl(url, post) {
                            "[InternetShortcut]\n" +
                            "IDList=\n" +
                            "URL=" + url;
-                var fileName = getFileNameForPost(url, post);
+                var fileName = getFileNameForPost(url, post, postIdx);
                 addFileToZip(fileName, ".url", data, post, false);
                 downloadedCount++;
                 updateUI();
@@ -447,16 +455,18 @@ function downloadUrl(url, post) {
     );
 }
 
-function getFileNameForPost(url, post) {
+function getFileNameForPost(url, post, postIdx) {
+    var fileName = prependOrderIndex ? (postIdx.toString() + "_") : "";
     if (nameFormat === "file-name") {
-        return getFileName(url);
+        fileName += getFileName(url);
     } else if (nameFormat === "post-id") {
-        return post.name;
+        fileName += post.name;
     } else {
         /* default: post-name */
         var regex = /[^\/]+(?=\/$|$)/g;
-        return regex.exec(post.permalink)[0];
+        fileName += regex.exec(post.permalink)[0];
     }
+    return fileName;
 }
 
 function addFileToZip(fileName, extension, data, post, dataIsBinary) {
