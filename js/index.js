@@ -352,6 +352,11 @@ function downloadPost(post) {
         return;
     }
 
+    /* Continue if item is from an external service and user doesn't want to download from those */
+    if (!includeNonReddit && (isImgurUrl(url) || isGfycatUrl(url))) {
+        return;
+    }
+
     /* Continue if link links to Imgur and we're not including anything that you can get from Imgur */
     if (!includeGifs && !includeVideos && !includeImages && isImgurUrl(url)) {
         return;
@@ -370,13 +375,13 @@ function downloadPost(post) {
     } else if (isRedditVideoUrl(url)) {
         /* Handle Reddit video link */
         downloadRedditVideo(url, post, postIdx);
-    } else if (includeNonReddit && isImgurAlbumOrGalleryUrl(url)) {
+    } else if (isImgurAlbumOrGalleryUrl(url)) {
         /* Handle downloading an album */
         downloadImgurAlbum(url, post, postIdx);
-    } else if (includeNonReddit && isImgurSingleImageAlbumUrl(url)) {
+    } else if (isImgurSingleImageAlbumUrl(url)) {
         /* Handle downloading a single-image album */
         downloadSingleImageImgurAlbum(url, post, postIdx);
-    } else if (includeNonReddit && isGfycatUrl(url)) {
+    } else if (isGfycatUrl(url)) {
         downloadGfycat(url, post, postIdx);
     } else if (includeOthers) {
         /* Handle downloading direct files with non-image/video extensions */
