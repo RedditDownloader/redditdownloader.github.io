@@ -383,9 +383,9 @@ function downloadPost(post) {
         downloadSingleImageImgurAlbum(url, post, postIdx);
     } else if (isGfycatUrl(url)) {
         downloadGfycat(url, post, postIdx);
-    } else if (includeOthers) {
+    } else if (includeOthers && isDirectUrl(url)) {
         /* Handle downloading direct files with non-image/video extensions */
-        downloadUnknownDirectFile(url, post, postIdx);
+        downloadDirectFile(url, post, postIdx);
     }
 }
 
@@ -575,15 +575,13 @@ function downloadGfycat(url, post, postIdx) {
     });
 }
 
-function downloadUnknownDirectFile(url, post, postIdx) {
+function isDirectUrl(url) {
     try {
         getFileExtension(url);
+        return true;
     } catch (error) {
-        console.log("Info: '" + url + "' was not a direct URL, skipping download..");
-        return;
+        return false;
     }
-    toDownloadCount++;
-    downloadUrl(url, post, postIdx);
 }
 
 function isDirectImageUrl(url) {
