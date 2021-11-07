@@ -107,7 +107,7 @@ function setupForm() {
         .form({
             fields: {
                 targetNameInput : "empty",
-                downloadAmountInput : "integer[0..]",
+                downloadAmountInput : "integer[1..]",
                 restrictByScoreValueInput : "integer[0..]",
                 includeImagesInput : "includeAny",
                 includeGifsInput : "includeAny",
