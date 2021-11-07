@@ -160,6 +160,7 @@ function setupButtons() {
         /* Reset states */
         $(".ui.form").addClass("loading");
         $("#downloadingInfoBox").show();
+        $("#downloadingInfoBox").get(0).scrollIntoView({ behavior: "smooth" });
         downloadRequests.clear();
         downloadedCount = 0;
         toDownloadCount = 0;
