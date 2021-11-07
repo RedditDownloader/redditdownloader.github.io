@@ -1,7 +1,11 @@
+html {
+    font-size: 100%;
+}
+
 html, body {
     height: 100%;
     margin: 0;
-    font-size: 100%;
+    padding: 0;
 }
 
 .container {
@@ -20,7 +24,12 @@ html, body {
 }
 
 #downloadButton {
-    margin-top: 40px;
+    margin-top: 35px;
+    margin-bottom: 30px;
+}
+
+#unknownNameErrorBox, #noImagesFoundWarningBox, #downloadingInfoBox, #processingInfoBox {
+    display: none;
 }
 
 /* semantic ui overrides */
@@ -29,8 +38,4 @@ html, body {
 }
 .ui.toggle.checkbox label:hover::before {
   background-color: #CACBCD !important;
-}
-
-#unknownNameErrorBox, #noImagesFoundWarningBox, #downloadingInfoBox, #processingInfoBox {
-    display: none;
 }
