@@ -191,9 +191,9 @@ function setupButtons() {
         if (userDownload) {
             /* Handle the user entering /user/ or user/ before the user name */
             if (targetName.startsWith("/user/")) {
-                targetName = targetName.substring(3);
+                targetName = targetName.substring(6);
             } else if (targetName.startsWith("user/")) {
-                targetName = targetName.substring(2);
+                targetName = targetName.substring(5);
             }
         } else {
             /* Handle the user entering /r/ or r/ before the sub name */
