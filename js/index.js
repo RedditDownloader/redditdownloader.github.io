@@ -273,7 +273,10 @@ function download(anchor) {
         dataType: "json",
         contentType: "application/json; charset=utf-8",
         success: downloadSucceeded,
-        error: downloadFailed
+        error: function(error) {
+            report(error);
+            downloadFailed(error, anchor);
+        }
     });
 }
 
@@ -661,6 +664,7 @@ function downloadFileAsBase64(url, callback, errored) {
         callback(blob);
     };
     xhr.onerror = function() {
+        report({ "message": "downloadFileAsBase64 xhr.onerror", "failedurl": url });
         errored();
     };
     xhr.open("GET", CORS_PROXY_URL + encodeURIComponent(url));
@@ -721,7 +725,7 @@ function addFileToZip(fileName, extension, data, post, dataIsBinary) {
     downloadedBytes += dataIsBinary ? data.size : data.length;
 }
 
-function downloadFailed(error) {
+function downloadFailed(error, anchor) {
     if (error.status === 404 || error.status === 403) {
         /* If HTTP status is 404 or 403, the subreddit probably doesn't exist */
         $("#unknownNameErrorBox").show();
@@ -789,4 +793,64 @@ function doneDownloading() {
 
 function isDownloading() {
     return $(".ui.form").hasClass("loading");
+}
+
+/* Error reporting */
+
+window.addEventListener("error", function(event) {
+    report(event);
+    return false;
+}, true);
+
+window.addEventListener("unhandledrejection", function(event) {
+    report(event);
+});
+
+function report(error) {
+    try {
+        if (!gtag) return;
+        var errorDescription = {
+            "message": error.message,
+            "failedurl": error.failedurl,
+            "arguments": error.arguments,
+            "type": error.type,
+            "name": error.name,
+            "statusText": error.statusText,
+            "status": error.status,
+            "stack": error.stack
+        };
+        if (error.target) errorDescription["outerHTML"] = error.target.outerHTML;
+        let currentStates = states();
+        let obj = Object.assign(errorDescription, currentStates);
+        gtag("event", "exception", obj);
+    } catch (error) {
+        console.error(error);
+    }
+}
+
+function states() {
+    return {
+        "userDownload": userDownload,
+        "targetName": targetName,
+        "section": section,
+        "maxPostCount": maxPostCount,
+        "maxPostsPerRequest": maxPostsPerRequest,
+        "nameFormat": nameFormat,
+        "prependOrderIndex": prependOrderIndex,
+        "restrictByScore": restrictByScore,
+        "restrictByScoreType": restrictByScoreType,
+        "restrictByScoreValue": restrictByScoreValue,
+        "includeImages": includeImages,
+        "includeGifs": includeGifs,
+        "includeVideos": includeVideos,
+        "includeOthers": includeOthers,
+        "includeNonReddit": includeNonReddit,
+        "includeAsLink": includeAsLink,
+        "includeNsfw": includeNsfw,
+        "downloadedCount": downloadedCount,
+        "toDownloadCount": toDownloadCount,
+        "postCount": postCount,
+        "downloadedBytes": downloadedBytes,
+        "downloadRequests": downloadRequests.size
+    }
 }
