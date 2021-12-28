@@ -663,18 +663,27 @@ function downloadUrl(url, post, postIdx) {
 }
 
 function downloadFileAsBase64(url, callback, errored) {
+    downloadXHR(url, callback, function() {
+        // Retry with proxy if it fails without.
+        downloadXHR(url, callback, function() {
+            report({ "message": "downloadFileAsBase64", "failedurl": url });
+            errored();
+        }, true);
+    }, false);
+}
+
+function downloadXHR(url, callback, errored, useProxy) {
     const xhr = new XMLHttpRequest();
     xhr.onload = function() {
         downloadRequests.delete(this);
-
         const blob = xhr.response;
         callback(blob);
     };
     xhr.onerror = function() {
-        report({ "message": "downloadFileAsBase64 xhr.onerror", "failedurl": url });
+        downloadRequests.delete(this);
         errored();
     };
-    xhr.open("GET", CORS_PROXY_URL + encodeURIComponent(url));
+    xhr.open("GET", useProxy === true ? CORS_PROXY_URL + encodeURIComponent(url) : url);
     xhr.responseType = "blob";
     xhr.send();
 
