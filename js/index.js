@@ -50,13 +50,27 @@ let downloadedBytes;
 let zip;
 
 $(document).ready(function() {
-    setRandomNamePlaceholder();
+    setTargetNamePlaceholder();
 
     setupSemanticUI();
     setupFilters();
     setupForm();
     setupButtons();
 });
+
+function setTargetNamePlaceholder() {
+    const isSubredditTarget = getTarget() == Target.SUBREDDIT;
+    if (isSubredditTarget) {
+        $("#targetNameInput").attr("placeholder", 
+            RANDOM_SUBREDDITS[Math.floor(Math.random() * RANDOM_SUBREDDITS.length)]);
+    } else {
+        $("#targetNameInput").attr("placeholder", "");   
+    }
+}
+
+function getTarget() {
+    return $("#subredditOrUserButtons .active").data("target");
+}
 
 function setupSemanticUI() {
     $(".ui.menu .item").tab();
@@ -74,11 +88,6 @@ function setupSemanticUI() {
             event.preventDefault();
         }
     );
-}
-
-function setRandomNamePlaceholder() {
-    $("#targetNameInput").attr("placeholder", 
-        RANDOM_SUBREDDITS[Math.floor(Math.random() * RANDOM_SUBREDDITS.length)]);
 }
 
 function setupFilters() {
@@ -141,9 +150,7 @@ function setupButtons() {
         }
         $("#searchFilterInput").parent().prop("hidden", isUserTarget);
 
-        if (isSubredditTarget) {
-            setRandomNamePlaceholder();
-        }
+        setTargetNamePlaceholder();
 
         $("#targetNameInput").focus();
         $("#targetNameInput").select();
@@ -169,7 +176,7 @@ function setupButtons() {
         zip = new JSZip();
 
         /* Read user options */
-        userDownload = $("#subredditOrUserButtons .active[data-target='" + Target.USER + "']").length > 0;
+        userDownload = getTarget() == Target.USER;
         targetName = $("#targetNameInput").val();
         section = $("#sectionInput").val();
         sectionTimespan = ""; // Set further down if section contains a timespan (eg. section is "top-week")
