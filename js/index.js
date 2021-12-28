@@ -141,7 +141,7 @@ function setupButtons() {
 
         const targetNameLabel = isUserTarget ? "User Name" : "Subreddit Name";
         $("label[for=targetNameInput]").text(targetNameLabel);
-        let sectionInputField = $("#sectionInput").parents(".field").first();
+        const sectionInputField = $("#sectionInput").parents(".field").first();
         sectionInputField.prop("hidden", isUserTarget);
         if (isUserTarget) {
             sectionInputField.parent().removeClass("two fields");
@@ -794,7 +794,9 @@ function doneDownloading() {
                 $("#zippingFileNameText").text(metadata.currentFile);
             }
         }).then(function(content) {
-            saveAs(content, targetName + "_" + section + ".zip");
+            const fileName = targetName + "_" + section + ".zip";
+            console.log("Info: saving zip to file '" + fileName + "'");
+            saveAs(content, fileName);
             $("#processingInfoBox").hide();
             $(".ui.form").removeClass("loading");
         });
@@ -836,8 +838,8 @@ function report(error) {
             "stack": error.stack
         };
         if (error.target) errorDescription["outerHTML"] = error.target.outerHTML;
-        let currentStates = states();
-        let obj = Object.assign(errorDescription, currentStates);
+        const currentStates = states();
+        const obj = Object.assign(errorDescription, currentStates);
         gtag("event", "exception", obj);
     } catch (error) {
         console.error(error);
