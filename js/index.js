@@ -366,7 +366,7 @@ function downloadPost(post) {
     }
 
     /* Continue if post links to a video and user doesn't want to download videos */
-    if (!includeVideos && (post.is_video || isDirectVideoUrl(url)) || isImgurGifvUrl(url)) {
+    if (!includeVideos && (post.is_video || isDirectVideoUrl(url) || isImgurGifvUrl(url))) {
         return;
     }
 
