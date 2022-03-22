@@ -417,34 +417,40 @@ function downloadPost(post) {
 function transformUrl(url) {
     // Imgur .gifv URLs can be freely changed to .mp4
     if (isImgurImageUrl(url) && isDirectGifvUrl(url)) {
-        url = url.replace(".gifv", ".mp4");
+        url = url.replace(/\.gifv/gi, ".mp4");
     }
     return url;
 }
 
 function isImgurUrl(url) {
+    url = url.toLowerCase();
     return url.startsWith("http://imgur.com/") || url.startsWith("https://imgur.com/");
 }
 
 function isImgurImageUrl(url) {
+    url = url.toLowerCase();
     return url.startsWith("http://i.imgur.com/") || url.startsWith("https://i.imgur.com/");
 }
 
 function isImgurAlbumOrGalleryUrl(url) {
+    url = url.toLowerCase();
     return url.startsWith("http://imgur.com/a/") || url.startsWith("https://imgur.com/a/") 
         || url.startsWith("http://imgur.com/gallery/") || url.startsWith("https://imgur.com/gallery/");
 }
 
 function isImgurSingleImageAlbumUrl(url) {
+    url = url.toLowerCase();
     return (url.startsWith("http://imgur.com/") || url.startsWith("https://imgur.com/"))
         && !isImgurAlbumOrGalleryUrl(url);
 }
 
 function isGfycatUrl(url) {
+    url = url.toLowerCase();
     return url.startsWith("http://gfycat.com/") || url.startsWith("https://gfycat.com/");
 }
 
 function isRedditVideoUrl(url) {
+    url = url.toLowerCase();
     return url.startsWith("http://v.redd.it/") || url.startsWith("https://v.redd.it/");
 }
 
