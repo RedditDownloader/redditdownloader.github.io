@@ -340,7 +340,7 @@ function downloadSucceeded(result, status, xhr) {
 }
 
 function downloadPost(post) {
-    const url = post.url;
+    let url = post.url;
 
     /* Only download if there's a URL */
     if (url == null) {
@@ -359,6 +359,8 @@ function downloadPost(post) {
             return;
         } 
     }
+
+    url = transformUrl(url);
 
     /* Continue if direct url is a gif and user doesn't want to download gifs */
     if (!includeGifs && isDirectGifUrl(url)) {
@@ -412,16 +414,20 @@ function downloadPost(post) {
     }
 }
 
+function transformUrl(url) {
+    // Imgur .gifv URLs can be freely changed to .mp4
+    if (isImgurImageUrl(url) && isDirectGifvUrl(url)) {
+        url = url.replace(".gifv", ".mp4");
+    }
+    return url;
+}
+
 function isImgurUrl(url) {
     return url.startsWith("http://imgur.com/") || url.startsWith("https://imgur.com/");
 }
 
-function isGfycatUrl(url) {
-    return url.startsWith("http://gfycat.com/") || url.startsWith("https://gfycat.com/");
-}
-
-function isRedditVideoUrl(url) {
-    return url.startsWith("http://v.redd.it/") || url.startsWith("https://v.redd.it/");
+function isImgurImageUrl(url) {
+    return url.startsWith("http://i.imgur.com/") || url.startsWith("https://i.imgur.com/");
 }
 
 function isImgurAlbumOrGalleryUrl(url) {
@@ -432,6 +438,14 @@ function isImgurAlbumOrGalleryUrl(url) {
 function isImgurSingleImageAlbumUrl(url) {
     return (url.startsWith("http://imgur.com/") || url.startsWith("https://imgur.com/"))
         && !isImgurAlbumOrGalleryUrl(url);
+}
+
+function isGfycatUrl(url) {
+    return url.startsWith("http://gfycat.com/") || url.startsWith("https://gfycat.com/");
+}
+
+function isRedditVideoUrl(url) {
+    return url.startsWith("http://v.redd.it/") || url.startsWith("https://v.redd.it/");
 }
 
 function downloadDirectFile(url, post, postIdx) {
@@ -485,7 +499,7 @@ function downloadImgurAlbum(url, post, postIdx) {
                 if (!includeNsfw && image.nsfw) {
                     continue;
                 }
-                const url = image.link;
+                const url = transformUrl(image.link);
                 if (!includeGifs && isDirectGifUrl(url)
                     || !includeVideos && isDirectVideoUrl(url)
                     || !includeImages && isDirectImageUrl(url)) {
@@ -537,7 +551,7 @@ function downloadSingleImageImgurAlbum(url, post, postIdx) {
                 toDownloadCount--;
                 return;
             }
-            const url = data.link;
+            const url = transformUrl(data.link);
             if (!includeGifs && isDirectGifUrl(url)
                 || !includeVideos && isDirectVideoUrl(url)
                 || !includeImages && isDirectImageUrl(url)) {
@@ -629,7 +643,12 @@ function isDirectVideoUrl(url) {
 
 function isDirectGifUrl(url) {
     url = url.toLowerCase();
-    return url.indexOf(".gif") !== -1 || url.indexOf(".gifv") !== -1;
+    return url.indexOf(".gif") !== -1 && !isDirectGifvUrl(url);
+}
+
+function isDirectGifvUrl(url) {
+    url = url.toLowerCase();
+    return url.indexOf(".gifv") !== -1;
 }
 
 function downloadUrl(url, post, postIdx) {
