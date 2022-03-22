@@ -340,7 +340,7 @@ function downloadSucceeded(result, status, xhr) {
 }
 
 function downloadPost(post) {
-    const url = post.url;
+    let url = post.url;
 
     /* Only download if there's a URL */
     if (url == null) {
@@ -360,13 +360,15 @@ function downloadPost(post) {
         } 
     }
 
+    url = transformUrl(url);
+
     /* Continue if direct url is a gif and user doesn't want to download gifs */
     if (!includeGifs && isDirectGifUrl(url)) {
         return;
     }
 
     /* Continue if post links to a video and user doesn't want to download videos */
-    if (!includeVideos && (post.is_video || isDirectVideoUrl(url) || isImgurGifvUrl(url))) {
+    if (!includeVideos && (post.is_video || isDirectVideoUrl(url))) {
         return;
     }
 
@@ -398,9 +400,6 @@ function downloadPost(post) {
     } else if (isRedditVideoUrl(url)) {
         /* Handle Reddit video link */
         downloadRedditVideo(url, post, postIdx);
-    } else if (isImgurGifvUrl(url)) {
-        /* Handle downloading raw video from gifv */
-        downloadImgurGifv(url, post, postIdx)
     } else if (isImgurAlbumOrGalleryUrl(url)) {
         /* Handle downloading an album */
         downloadImgurAlbum(url, post, postIdx);
@@ -415,16 +414,20 @@ function downloadPost(post) {
     }
 }
 
+function transformUrl(url) {
+    // Imgur .gifv URLs can be freely changed to .mp4
+    if (isImgurImageUrl(url) && isDirectGifvUrl(url)) {
+        url = url.replace(".gifv", ".mp4");
+    }
+    return url;
+}
+
 function isImgurUrl(url) {
     return url.startsWith("http://imgur.com/") || url.startsWith("https://imgur.com/");
 }
 
-function isGfycatUrl(url) {
-    return url.startsWith("http://gfycat.com/") || url.startsWith("https://gfycat.com/");
-}
-
-function isRedditVideoUrl(url) {
-    return url.startsWith("http://v.redd.it/") || url.startsWith("https://v.redd.it/");
+function isImgurImageUrl(url) {
+    return url.startsWith("http://i.imgur.com/") || url.startsWith("https://i.imgur.com/");
 }
 
 function isImgurAlbumOrGalleryUrl(url) {
@@ -435,6 +438,14 @@ function isImgurAlbumOrGalleryUrl(url) {
 function isImgurSingleImageAlbumUrl(url) {
     return (url.startsWith("http://imgur.com/") || url.startsWith("https://imgur.com/"))
         && !isImgurAlbumOrGalleryUrl(url);
+}
+
+function isGfycatUrl(url) {
+    return url.startsWith("http://gfycat.com/") || url.startsWith("https://gfycat.com/");
+}
+
+function isRedditVideoUrl(url) {
+    return url.startsWith("http://v.redd.it/") || url.startsWith("https://v.redd.it/");
 }
 
 function downloadDirectFile(url, post, postIdx) {
@@ -452,12 +463,6 @@ function downloadRedditVideo(url, post, postIdx) {
     // TODO: Add the audio track to the video
     //var audioUrl = videoUrl.replace(/(\d)+\.mp4/, 'audio.mp4');
 
-    toDownloadCount++;
-    downloadUrl(videoUrl, post, postIdx);
-}
-
-function downloadImgurGifv(url, post, postIdx) {
-    const videoUrl = url.replace(".gifv", ".mp4");
     toDownloadCount++;
     downloadUrl(videoUrl, post, postIdx);
 }
@@ -494,9 +499,9 @@ function downloadImgurAlbum(url, post, postIdx) {
                 if (!includeNsfw && image.nsfw) {
                     continue;
                 }
-                const url = image.link;
+                const url = transformUrl(image.link);
                 if (!includeGifs && isDirectGifUrl(url)
-                    || !includeVideos && (isDirectVideoUrl(url) || isImgurGifvUrl(url))
+                    || !includeVideos && isDirectVideoUrl(url)
                     || !includeImages && isDirectImageUrl(url)) {
                     continue;
                 }
@@ -546,9 +551,9 @@ function downloadSingleImageImgurAlbum(url, post, postIdx) {
                 toDownloadCount--;
                 return;
             }
-            const url = data.link;
+            const url = transformUrl(data.link);
             if (!includeGifs && isDirectGifUrl(url)
-                || !includeVideos && (isDirectVideoUrl(url) || isImgurGifvUrl(url))
+                || !includeVideos && isDirectVideoUrl(url)
                 || !includeImages && isDirectImageUrl(url)) {
                 toDownloadCount--;
                 return;
@@ -638,13 +643,12 @@ function isDirectVideoUrl(url) {
 
 function isDirectGifUrl(url) {
     url = url.toLowerCase();
-    return url.indexOf(".gif") !== -1 && url.indexOf(".gifv") === -1;
+    return url.indexOf(".gif") !== -1 && !isDirectGifvUrl(url);
 }
 
-function isImgurGifvUrl(url) {
+function isDirectGifvUrl(url) {
     url = url.toLowerCase();
-    return (url.startsWith("http://i.imgur.com/") || url.startsWith("https://i.imgur.com/"))
-        && url.indexOf(".gifv") !== -1;
+    return url.indexOf(".gifv") !== -1;
 }
 
 function downloadUrl(url, post, postIdx) {
